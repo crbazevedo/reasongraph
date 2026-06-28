@@ -284,6 +284,69 @@ class ReasonGraph:
             feeds=[ref(t) for t in self.out[nid]],
         )
 
+    # ---------------- VISUALIZE (pure exporters) ----------------
+    def _classify(self):
+        """Map each node id -> a status class for coloring: proven/refuted/ready/blocked/awaiting/open."""
+        d = self.deduction()
+        cls = {}
+        for i in self.N:
+            if i in d["proven"]:      cls[i] = "proven"
+            elif i in d["refuted"]:   cls[i] = "refuted"
+            elif i in d["ready"]:     cls[i] = "ready"
+            elif i in d["blocked"]:   cls[i] = "blocked"
+            elif i in d["awaiting"]:  cls[i] = "awaiting"
+            else:                     cls[i] = "open"
+        return cls
+
+    def to_mermaid(self):
+        """A Mermaid flowchart, status-colored. Pure + deterministic."""
+        cls = self._classify()
+        sid = {i: "n" + "".join(c if c.isalnum() else "_" for c in i) for i in self.N}
+        style = dict(proven="fill:#c8e6c9,stroke:#2e7d32", refuted="fill:#ffcdd2,stroke:#c62828",
+                     ready="fill:#bbdefb,stroke:#1565c0", blocked="fill:#ffe0b2,stroke:#e65100",
+                     awaiting="fill:#f5f5f5,stroke:#9e9e9e", open="fill:#fff,stroke:#616161")
+        L = ["flowchart TD"]
+        for i, n in self.N.items():
+            label = n["title"].replace('"', "'")
+            L.append(f'  {sid[i]}["{i}: {label}"]:::{cls[i]}')
+        for e in self.g["edges"]:
+            f, t, r = e.get("from"), e.get("to"), e.get("relation")
+            if f not in self.N or t not in self.N:
+                continue
+            if r in self.cfg.prereq_rel:
+                L.append(f"  {sid[f]} --> {sid[t]}")
+            elif r in self.cfg.neg_rel:
+                L.append(f"  {sid[f]} -.->|{r}| {sid[t]}")
+            else:
+                L.append(f"  {sid[f]} -.->|{r}| {sid[t]}")
+        for k, v in style.items():
+            L.append(f"  classDef {k} {v};")
+        return "\n".join(L)
+
+    def to_dot(self):
+        """A Graphviz DOT digraph, status-colored. Pure + deterministic."""
+        cls = self._classify()
+        fill = dict(proven="#c8e6c9", refuted="#ffcdd2", ready="#bbdefb",
+                    blocked="#ffe0b2", awaiting="#f5f5f5", open="#ffffff")
+        def q(s): return '"' + str(s).replace('"', '\\"') + '"'
+        L = ["digraph reasongraph {", "  rankdir=TB;",
+             '  node [shape=box, style="rounded,filled", fontname="Helvetica"];']
+        for i, n in self.N.items():
+            label = f"{i}: {n['title']}"
+            L.append(f"  {q(i)} [label={q(label)}, fillcolor={q(fill[cls[i]])}];")
+        for e in self.g["edges"]:
+            f, t, r = e.get("from"), e.get("to"), e.get("relation")
+            if f not in self.N or t not in self.N:
+                continue
+            if r in self.cfg.prereq_rel:
+                L.append(f"  {q(f)} -> {q(t)} [label={q(r)}];")
+            elif r in self.cfg.neg_rel:
+                L.append(f"  {q(f)} -> {q(t)} [label={q(r)}, color=red, style=dashed];")
+            else:
+                L.append(f"  {q(f)} -> {q(t)} [label={q(r)}, color=gray, style=dotted];")
+        L.append("}")
+        return "\n".join(L)
+
     # ---------------- report + evolve ----------------
     def format_report(self):
         d = self.deduction()

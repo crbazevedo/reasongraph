@@ -2,6 +2,7 @@
 
     reasongraph pass [graph.json] [--log decision_log.md] [--json]
     reasongraph show <graph.json> <node-id> [--json]
+    reasongraph export [graph.json] [--mermaid|--dot]
     reasongraph add-finding <graph.json> <node-id> <status> [--conf C] [--note "..."] [--ev PTR]
     reasongraph validate [graph.json] [--json]
 
@@ -52,6 +53,13 @@ def main(argv=None):
     sp.add_argument("node")
     sp.add_argument("--json", action="store_true", help="emit the node view as JSON")
 
+    ep = sub.add_parser("export", help="export a status-colored graph (Mermaid or Graphviz DOT)")
+    ep.add_argument("graph", nargs="?", default="graph.json")
+    fmt = ep.add_mutually_exclusive_group()
+    fmt.add_argument("--mermaid", action="store_const", dest="fmt", const="mermaid")
+    fmt.add_argument("--dot", action="store_const", dest="fmt", const="dot")
+    ep.set_defaults(fmt="mermaid")
+
     af = sub.add_parser("add-finding", help="record a result on a node, then re-run the pass")
     af.add_argument("graph")
     af.add_argument("node")
@@ -81,6 +89,9 @@ def main(argv=None):
             print(json.dumps(view, indent=1))
         else:
             print(_format_node(view))
+    elif args.cmd == "export":
+        rg = ReasonGraph.from_file(args.graph)
+        print(rg.to_dot() if args.fmt == "dot" else rg.to_mermaid())
     elif args.cmd == "add-finding":
         rg = ReasonGraph.from_file(args.graph)
         try:

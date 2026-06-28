@@ -39,6 +39,7 @@ reasongraph add-finding examples/governed_innovation.json T-INDEX proven --conf 
 reasongraph validate examples/governed_innovation.json   # lint the graph (CI-friendly exit code)
 reasongraph pass examples/governed_innovation.json --json # machine-readable pass for tooling
 reasongraph show examples/governed_innovation.json T-INDEX # one node + its graph context
+reasongraph export examples/governed_innovation.json --mermaid  # status-colored diagram (or --dot)
 ```
 
 `reasongraph` dogfoods its own roadmap: [`examples/reasongraph_roadmap.py`](examples/reasongraph_roadmap.py)

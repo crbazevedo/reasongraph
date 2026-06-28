@@ -147,8 +147,8 @@
    "kind": "target",
    "title": "`reasongraph export --mermaid|--dot` \u2014 status-colored visualization",
    "statement": "",
-   "status": "open",
-   "confidence": 0.5,
+   "status": "proven",
+   "confidence": 0.9,
    "attrs": {
     "payoff": 0.8,
     "effort": 0.35,
@@ -158,8 +158,13 @@
     "info_value": 0.4,
     "risk": 0.15
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py"
+   ],
+   "frontier": false,
+   "notes": [
+    "shipped: to_mermaid/to_dot + export CLI + test"
+   ]
   },
   {
    "id": "T-JSON",

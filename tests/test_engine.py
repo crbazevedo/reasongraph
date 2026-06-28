@@ -136,6 +136,18 @@ def test_node_view_unknown_raises():
         pass
 
 
+def test_export_mermaid_and_dot_are_deterministic_and_status_colored():
+    rg = ReasonGraph(_graph())
+    m1, m2 = rg.to_mermaid(), rg.to_mermaid()
+    assert m1 == m2 and m1.startswith("flowchart TD")    # deterministic
+    assert ":::proven" in m1 and ":::refuted" in m1 and ":::ready" in m1   # status classes applied
+    assert "classDef proven" in m1
+    dot = rg.to_dot()
+    assert dot.startswith("digraph reasongraph") and dot.rstrip().endswith("}")
+    assert '"C1" -> "T-READY"' in dot                    # prerequisite edge rendered
+    assert "fillcolor" in dot                            # nodes status-filled
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")
