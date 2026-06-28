@@ -13,7 +13,9 @@ keywords = ["research", "reasoning", "roadmap", "agents", "governance", "abducti
 dependencies = []   # stdlib only, by design
 
 [project.urls]
-Documentation = "https://example.invalid/reasongraph"  # set on publish
+Homepage = "https://github.com/crbazevedo/reasongraph"
+Repository = "https://github.com/crbazevedo/reasongraph"
+Documentation = "https://github.com/crbazevedo/reasongraph/blob/main/docs/METHODOLOGY.md"
 
 [project.scripts]
 reasongraph = "reasongraph.cli:main"
