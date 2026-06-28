@@ -65,12 +65,13 @@ node("T-EXAMPLE2", "target", "a second worked example in a different domain (sec
 
 # --- research-derived FINDINGS (see docs/RESEARCH-NOTES.md) ---
 node("F-BLOCK-ONEHOP", "finding",
-     "Block propagation is one-hop, not transitive (grandchild of a refuted node = AWAITING)",
+     "Block propagation WAS one-hop, not transitive (grandchild of a refuted node = AWAITING)",
      "proven", attrs=A(info=.8),
-     statement="Verified by reproduction: deduction() inspects only immediate prerequisites, so a "
-               "refutation blocks children but not grandchildren. A real TMS relabels the whole "
-               "reachable subgraph.",
-     evidence=["reproduction 2026-06: P refuted, C blocked, GC awaiting", "docs/RESEARCH-NOTES.md §3"])
+     statement="Verified by reproduction: the original deduction() inspected only immediate "
+               "prerequisites, so a refutation blocked children but not grandchildren. RESOLVED by "
+               "T-BLOCK-TRANSITIVE — deduction now propagates BLOCKED across the reachable subgraph.",
+     evidence=["reproduction 2026-06: P refuted, C blocked, GC awaiting", "docs/RESEARCH-NOTES.md §3",
+               "fixed by T-BLOCK-TRANSITIVE"])
 node("F-FIREWALL-GROUNDED", "finding",
      "The LLM-out-of-deduction/decision firewall is theory-aligned (Peirce generation/justification)",
      "proven", attrs=A(info=.5),
@@ -82,13 +83,15 @@ node("F-FIREWALL-GROUNDED", "finding",
 # --- research-derived TARGETS: belief-revision / argumentation cluster (highest leverage) ---
 node("T-STATUS-DERIVED", "target",
      "Status as a pure function of current evidence, recomputed each pass (recovery-by-construction)",
-     "open", attrs=A(payoff=.8, effort=.5, tract=.7, ready=.8, fit=.85, info=.6, risk=.3),
+     "proven", attrs=A(payoff=.8, effort=.5, tract=.7, ready=.8, fit=.85, info=.6, risk=.3),
      statement="Never mutate-and-forget; recomputing makes deduction correctly non-monotonic — a "
-               "refutation removes READY, overturning it restores READY. Keystone for the cluster.")
+               "refutation removes READY, overturning it restores READY. Keystone for the cluster.",
+     evidence=["reasongraph/engine.py: is_frontier() derived membership + recovery"])
 node("T-BLOCK-TRANSITIVE", "target",
      "Block as a transitive closure over prerequisite edges (TMS-style invalidation)",
-     "open", attrs=A(payoff=.75, effort=.3, tract=.85, ready=.9, fit=.8, info=.6, risk=.25),
-     statement="Fix F-BLOCK-ONEHOP: a descendant of a refuted node should be BLOCKED, not AWAITING.")
+     "proven", attrs=A(payoff=.75, effort=.3, tract=.85, ready=.9, fit=.8, info=.6, risk=.25),
+     statement="Fix F-BLOCK-ONEHOP: a descendant of a refuted node should be BLOCKED, not AWAITING.",
+     evidence=["reasongraph/engine.py: transitive deduction() via memoized DFS"])
 node("T-OR-JUSTIFICATIONS", "target",
      "Disjunctive prerequisite-sets — BLOCK only when ALL alternative justifications are dead",
      "open", attrs=A(payoff=.7, effort=.6, tract=.55, ready=.5, fit=.65, info=.55, risk=.4),

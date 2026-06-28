@@ -33,6 +33,39 @@ def test_deduction_classifies_readiness():
     assert "C1" in d["proven"] and "F-BAD" in d["refuted"]
 
 
+def _chain():
+    """P (refuted) -> C -> GC : a two-deep prerequisite chain under a refutation."""
+    g = new_graph(thesis="transitive block")
+    g["nodes"] += [
+        make_node("P", "finding", "refuted premise", "refuted"),
+        make_node("C", "target", "child of P", "open", attrs=A(payoff=.6)),
+        make_node("GC", "target", "grandchild of P", "open", attrs=A(payoff=.6)),
+    ]
+    g["edges"] += [make_edge("P", "C", "enables"), make_edge("C", "GC", "enables")]
+    return g
+
+
+def test_block_propagates_transitively():
+    d = ReasonGraph(_chain()).deduction()
+    assert "C" in d["blocked"] and d["blocked"]["C"] == ["P"]
+    assert "GC" in d["blocked"]            # transitive: BLOCKED via its blocked parent (was AWAITING)
+    assert d["blocked"]["GC"] == ["C"]     # cause names the immediate dead prerequisite
+    assert "GC" not in d["awaiting"]
+
+
+def test_transitive_block_recovers_when_root_is_overturned():
+    rg = ReasonGraph(_chain())
+    rg.add_finding("P", "proven")          # overturn the root refutation
+    d = rg.deduction()
+    # the block is lifted across the subgraph: C is now READY (P proven), GC AWAITS C being proven
+    assert "C" in d["ready"]
+    assert "GC" in d["awaiting"] and d["awaiting"]["GC"] == ["C"]
+    assert "C" not in d["blocked"] and "GC" not in d["blocked"]
+    # ...and proving C cascades GC to READY
+    rg.add_finding("C", "proven")
+    assert "GC" in rg.deduction()["ready"]
+
+
 def test_decision_is_deterministic_and_orders_ready_first():
     rg = ReasonGraph(_graph())
     r1 = rg.decision(rg.deduction())
