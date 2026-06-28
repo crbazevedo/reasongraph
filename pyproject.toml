@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reasongraph"
+version = "0.1.0"
+description = "A reasoning engine for principled, evidence-evolving programmes — the governed outer-loop for agentic innovation."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["research", "reasoning", "roadmap", "agents", "governance", "abduction", "decision"]
+dependencies = []   # stdlib only, by design
+
+[project.urls]
+Documentation = "https://example.invalid/reasongraph"  # set on publish
+
+[project.scripts]
+reasongraph = "reasongraph.cli:main"
+
+[tool.setuptools]
+packages = ["reasongraph"]
