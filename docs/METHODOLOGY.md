@@ -67,6 +67,11 @@ high-payoff leaves); **info-value** lets a likely-*negative* result that resolve
 ## Invariants that make it work
 
 - **Negative results are findings, not failures** — they propagate, prune, and spawn.
+- **Derived state recovers; it is never a one-way stamp** — readiness *and* frontier membership are
+  recomputed from current status each pass (`is_frontier` = intent ∧ status-unresolved), so
+  overturning a finding restores the node and its dependents. This is the bidirectional belief
+  revision a Truth Maintenance System guarantees (Doyle 1979); `add-finding` records evidence, it
+  does not mutate derived flags.
 - **Confidence is capped by evidence quality** — `empirical-thin` can't reach high confidence until
   an enabling experiment lands.
 - **Keep the seed canonical** — hand-curated nodes live in a re-runnable seed script; the JSON is

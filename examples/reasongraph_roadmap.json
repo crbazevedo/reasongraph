@@ -343,8 +343,8 @@
    "kind": "target",
    "title": "Status as a pure function of current evidence, recomputed each pass (recovery-by-construction)",
    "statement": "Never mutate-and-forget; recomputing makes deduction correctly non-monotonic \u2014 a refutation removes READY, overturning it restores READY. Keystone for the cluster.",
-   "status": "open",
-   "confidence": 0.5,
+   "status": "proven",
+   "confidence": 0.9,
    "attrs": {
     "payoff": 0.8,
     "effort": 0.5,
@@ -354,8 +354,13 @@
     "info_value": 0.6,
     "risk": 0.3
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py"
+   ],
+   "frontier": true,
+   "notes": [
+    "shipped: is_frontier() derived membership + recovery; add_finding no longer mutates frontier"
+   ]
   },
   {
    "id": "T-BLOCK-TRANSITIVE",

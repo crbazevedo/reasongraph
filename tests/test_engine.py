@@ -48,8 +48,21 @@ def test_add_finding_propagates_and_unblocks():
     rg.add_finding("T-READY", "proven", confidence=0.9)
     d = rg.deduction()
     assert "T-WAIT" in d["ready"]
-    # proven nodes leave the frontier
-    assert rg.N["T-READY"]["frontier"] is False
+    # proven nodes leave the frontier (derived, not a mutated stamp)
+    assert rg.is_frontier(rg.N["T-READY"]) is False
+    assert "T-READY" not in [i for _, i, *_ in rg.decision(d)]
+
+
+def test_frontier_membership_recovers_when_a_finding_is_overturned():
+    """The T-STATUS-DERIVED contract: refute a frontier target then overturn it, and it returns
+    to the decision ranking — frontier is derived from status, not a one-way stamp."""
+    rg = ReasonGraph(_graph())
+    assert "T-READY" in [i for _, i, *_ in rg.decision(rg.deduction())]
+    rg.add_finding("T-READY", "refuted")
+    assert "T-READY" not in [i for _, i, *_ in rg.decision(rg.deduction())]
+    rg.add_finding("T-READY", "open")                      # overturn the refutation
+    assert "T-READY" in [i for _, i, *_ in rg.decision(rg.deduction())]   # recovered
+    assert rg.is_frontier(rg.N["T-READY"]) is True
 
 
 def test_abduction_emits_for_surprises():

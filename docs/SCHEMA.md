@@ -33,7 +33,7 @@ not a rewrite.
 | `confidence` | [0,1]; set by induction, capped by evidence quality |
 | `attrs` | the decision inputs, all [0,1]: `payoff`, `effort`, `tractability`, `readiness`, `strategic_fit` (thesis alignment), `info_value` (decision-useful either way), `risk`. Extra keys (e.g. `venue`, tags) pass through untouched. |
 | `evidence` | pointers *with polarity* — a path to a proof/dataset, or a provenance string. Count + independence drive induction. |
-| `frontier` | is it an actionable next target? (auto-true for open targets/experiments; false once proven/refuted) |
+| `frontier` | authored *intent* — "this is an actionable item" (auto-true for open targets/experiments). *Effective* frontier membership is **derived** each pass (`is_frontier` = this flag AND status not proven/refuted), so a node leaves the frontier when resolved and returns if a finding is later overturned — recovery, not a one-way stamp. |
 
 ## edge
 ```json

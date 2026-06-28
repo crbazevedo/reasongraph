@@ -9,8 +9,9 @@
 `pass` runs deduction + induction + abduction + the ranked frontier (and optionally appends a
 decision-log line); `--json` emits the whole pass as a machine-readable object instead.
 `show` prints one node plus its graph context (prereqs / dependents / classification / score).
-`add-finding` records a result on an existing node — positive OR negative, both first-class —
-flips it off the frontier if proven/refuted, saves, and re-runs the pass. `validate` lints the
+`add-finding` records a result on an existing node — positive OR negative, both first-class — saves,
+and re-runs the pass (frontier membership is *derived* from status, so a proven/refuted node leaves
+the frontier and returns if the finding is later overturned). `validate` lints the
 graph (dangling edges, unknown status/kind/relation, prerequisite cycles); it exits non-zero if
 any *error*-severity issue is found, so it doubles as a CI gate.
 """

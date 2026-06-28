@@ -59,6 +59,17 @@ class ReasonGraph:
                 out[f].append(t)
         self.N, self.pre, self.out, self.neg = N, pre, out, neg
 
+    def is_frontier(self, n):
+        """Effective frontier membership — a PURE function of authored intent + current status.
+
+        The stored ``frontier`` flag is *intent* ("this is an actionable item"); a node is only
+        actually on the frontier while its status is unresolved. Computing this each pass (instead
+        of mutating the flag when a finding lands) is what makes recovery automatic: overturning a
+        refutation puts the node straight back on the frontier — no mutate-and-forget. See
+        docs/RESEARCH-NOTES.md §3 (T-STATUS-DERIVED).
+        """
+        return bool(n.get("frontier")) and n["status"] not in (self.cfg.proven | self.cfg.refuted)
+
     # ---------------- DEDUCTION ----------------
     def deduction(self):
         P, R = self.cfg.proven, self.cfg.refuted
@@ -110,7 +121,7 @@ class ReasonGraph:
                             f"{miss}). Abduce a repair path / alternative lemma routing around the "
                             "refuted prerequisite.")))
         for n in self.g["nodes"]:
-            if n.get("frontier") and n["attrs"].get("info_value", 0) >= self.cfg.high_info_min:
+            if self.is_frontier(n) and n["attrs"].get("info_value", 0) >= self.cfg.high_info_min:
                 tasks.append(dict(trigger="high-info", node=n["id"],
                     prompt=(f"HIGH-INFORMATION target {n['id']}: enumerate the 2-3 outcomes "
                             "(positive AND negative) and what each entails downstream, so the "
@@ -132,7 +143,7 @@ class ReasonGraph:
 
         ranked = []
         for n in self.g["nodes"]:
-            if not n.get("frontier"):
+            if not self.is_frontier(n):
                 continue
             a = n["attrs"]; i = n["id"]; cen = centrality(i)
             rb = rb_ready if i in d["ready"] else (rb_await if i in d["awaiting"] else rb_else)
@@ -248,7 +259,7 @@ class ReasonGraph:
             thesis=self.g.get("meta", {}).get("thesis", ""),
             counts=dict(nodes=len(self.g["nodes"]), proven=len(d["proven"]),
                         refuted=len(d["refuted"]),
-                        frontier=sum(1 for n in self.g["nodes"] if n.get("frontier"))),
+                        frontier=sum(1 for n in self.g["nodes"] if self.is_frontier(n))),
             deduction=dict(proven=sorted(d["proven"]), refuted=sorted(d["refuted"]),
                            ready=sorted(d["ready"]),
                            awaiting={k: d["awaiting"][k] for k in sorted(d["awaiting"])},
@@ -277,7 +288,7 @@ class ReasonGraph:
         return dict(
             id=nid, kind=n["kind"], title=n["title"], statement=n.get("statement", ""),
             status=n["status"], classification=cls, confidence=n.get("confidence"),
-            frontier=bool(n.get("frontier")), score=score, attrs=n.get("attrs", {}),
+            frontier=self.is_frontier(n), score=score, attrs=n.get("attrs", {}),
             evidence=n.get("evidence", []), notes=n.get("notes", []),
             prerequisites=[ref(p) for p in self.pre[nid]],
             negatives=[ref(p) for p in self.neg[nid]],
@@ -353,7 +364,7 @@ class ReasonGraph:
         g = self.g
         L = [f"=== REASON-GRAPH — {g.get('meta', {}).get('thesis', '(no thesis)')} ===",
              f"nodes {len(g['nodes'])} | proven {len(d['proven'])} | refuted {len(d['refuted'])} "
-             f"| frontier {sum(1 for n in g['nodes'] if n.get('frontier'))}", "",
+             f"| frontier {sum(1 for n in g['nodes'] if self.is_frontier(n))}", "",
              "[DEDUCTION] ready (all prereqs proven): " + (", ".join(d["ready"]) or "none")]
         if d["blocked"]:
             L.append("           blocked by refutation: "
@@ -393,7 +404,9 @@ class ReasonGraph:
             n.setdefault("notes", []).append(note)
         if evidence:
             n.setdefault("evidence", []).append(evidence)
-        if status in self.cfg.proven | self.cfg.refuted:
-            n["frontier"] = False
+        # NOTE: we deliberately do NOT mutate n["frontier"] here. Frontier membership is derived
+        # each pass by is_frontier() from status, so a node drops off the frontier when it becomes
+        # proven/refuted and returns to it if that finding is later overturned (recovery, not a
+        # one-way stamp). See is_frontier() and docs/RESEARCH-NOTES.md §3.
         self._index()
         return n
