@@ -43,7 +43,9 @@ reasongraph export examples/governed_innovation.json --mermaid  # status-colored
 ```
 
 `reasongraph` dogfoods its own roadmap: [`examples/reasongraph_roadmap.py`](examples/reasongraph_roadmap.py)
-models the backlog as a reason-graph and lets the engine rank what to build next.
+models the backlog — including targets distilled from the reasoning/KR literature
+([docs/RESEARCH-NOTES.md](docs/RESEARCH-NOTES.md)) — as a reason-graph and lets the engine rank what
+to build next.
 
 A pass prints four blocks: **DEDUCTION** (ready / blocked), **DECISION** (the ranked frontier),
 **INDUCTION** (confidence + generalization flags), **ABDUCTION** (hypothesis tasks for an LLM).
