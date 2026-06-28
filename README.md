@@ -36,7 +36,16 @@ pip install -e .          # stdlib only; nothing else is pulled in
 python examples/governed_innovation.py            # build a sample graph + run one pass
 reasongraph pass examples/governed_innovation.json
 reasongraph add-finding examples/governed_innovation.json T-INDEX proven --conf 0.8 --ev proof.md
+reasongraph validate examples/governed_innovation.json   # lint the graph (CI-friendly exit code)
+reasongraph pass examples/governed_innovation.json --json # machine-readable pass for tooling
+reasongraph show examples/governed_innovation.json T-INDEX # one node + its graph context
+reasongraph export examples/governed_innovation.json --mermaid  # status-colored diagram (or --dot)
 ```
+
+`reasongraph` dogfoods its own roadmap: [`examples/reasongraph_roadmap.py`](examples/reasongraph_roadmap.py)
+models the backlog — including targets distilled from the reasoning/KR literature
+([docs/RESEARCH-NOTES.md](docs/RESEARCH-NOTES.md)) — as a reason-graph and lets the engine rank what
+to build next.
 
 A pass prints four blocks: **DEDUCTION** (ready / blocked), **DECISION** (the ranked frontier),
 **INDUCTION** (confidence + generalization flags), **ABDUCTION** (hypothesis tasks for an LLM).

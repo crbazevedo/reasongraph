@@ -1,0 +1,857 @@
+{
+ "meta": {
+  "schema": "reasongraph/v1",
+  "thesis": "a lean, public, stdlib-only governed outer-loop engine people can adopt"
+ },
+ "nodes": [
+  {
+   "id": "C-ENGINE",
+   "kind": "contribution",
+   "title": "Four-mode engine (deduction/induction/abduction/decision)",
+   "statement": "Peirce's triad + a deterministic decision layer over a typed claim graph.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-SCHEMA",
+   "kind": "contribution",
+   "title": "Schema + tunable GraphConfig (status ladder / weights / kinds)",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-CLI",
+   "kind": "contribution",
+   "title": "CLI: `pass` + `add-finding`",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-EXAMPLE",
+   "kind": "contribution",
+   "title": "Worked example (governed_innovation) + generated JSON",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.4,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-DOCS",
+   "kind": "contribution",
+   "title": "README + METHODOLOGY + SCHEMA + RESEARCH-NOTES docs",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.4,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-TESTS",
+   "kind": "contribution",
+   "title": "Deterministic tests for deduction/decision/evolution",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "T-VALIDATE",
+   "kind": "target",
+   "title": "`reasongraph validate` \u2014 schema/edge lint (dangling/unknown/cycles)",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.7,
+    "effort": 0.3,
+    "tractability": 0.9,
+    "readiness": 0.9,
+    "strategic_fit": 0.85,
+    "info_value": 0.4,
+    "risk": 0.1
+   },
+   "evidence": [
+    "reasongraph/engine.py: validate()"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "T-EXPORT",
+   "kind": "target",
+   "title": "`reasongraph export --mermaid|--dot` \u2014 status-colored visualization",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.8,
+    "effort": 0.35,
+    "tractability": 0.85,
+    "readiness": 0.9,
+    "strategic_fit": 0.75,
+    "info_value": 0.4,
+    "risk": 0.15
+   },
+   "evidence": [
+    "reasongraph/engine.py: to_mermaid()/to_dot()"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "T-JSON",
+   "kind": "target",
+   "title": "`pass --json` + `reasongraph show <node>` for tooling",
+   "statement": "",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.7,
+    "effort": 0.3,
+    "tractability": 0.9,
+    "readiness": 0.9,
+    "strategic_fit": 0.7,
+    "info_value": 0.5,
+    "risk": 0.1
+   },
+   "evidence": [
+    "reasongraph/engine.py: pass_data()/node_view()"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "T-SEED",
+   "kind": "target",
+   "title": "`reasongraph seed <name>` \u2014 scaffold a seed.py + empty graph",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.55,
+    "effort": 0.3,
+    "tractability": 0.85,
+    "readiness": 0.9,
+    "strategic_fit": 0.6,
+    "info_value": 0.3,
+    "risk": 0.1
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-ABDUCE",
+   "kind": "target",
+   "title": "`reasongraph abduce --run` \u2014 pipe tasks to an LLM, write nodes back",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.8,
+    "effort": 0.55,
+    "tractability": 0.55,
+    "readiness": 0.6,
+    "strategic_fit": 0.85,
+    "info_value": 0.6,
+    "risk": 0.35
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-SNAPSHOT",
+   "kind": "target",
+   "title": "snapshot/history: a passes/ log + `diff` between two passes",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.5,
+    "tractability": 0.65,
+    "readiness": 0.6,
+    "strategic_fit": 0.65,
+    "info_value": 0.55,
+    "risk": 0.2
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-CONF",
+   "kind": "target",
+   "title": "opt-in confidence auto-aggregation from evidence[]",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.55,
+    "effort": 0.45,
+    "tractability": 0.6,
+    "readiness": 0.7,
+    "strategic_fit": 0.6,
+    "info_value": 0.5,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-HTML",
+   "kind": "target",
+   "title": "no-deps static HTML viewer of the graph + ranked frontier",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.75,
+    "effort": 0.6,
+    "tractability": 0.6,
+    "readiness": 0.5,
+    "strategic_fit": 0.7,
+    "info_value": 0.4,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-EXAMPLE2",
+   "kind": "target",
+   "title": "a second worked example in a different domain (security audit)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.65,
+    "effort": 0.45,
+    "tractability": 0.8,
+    "readiness": 0.9,
+    "strategic_fit": 0.75,
+    "info_value": 0.45,
+    "risk": 0.15
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "F-BLOCK-ONEHOP",
+   "kind": "finding",
+   "title": "Block propagation is one-hop, not transitive (grandchild of a refuted node = AWAITING)",
+   "statement": "Verified by reproduction: deduction() inspects only immediate prerequisites, so a refutation blocks children but not grandchildren. A real TMS relabels the whole reachable subgraph.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.8,
+    "risk": 0.3
+   },
+   "evidence": [
+    "reproduction 2026-06: P refuted, C blocked, GC awaiting",
+    "docs/RESEARCH-NOTES.md \u00a73"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "F-FIREWALL-GROUNDED",
+   "kind": "finding",
+   "title": "The LLM-out-of-deduction/decision firewall is theory-aligned (Peirce generation/justification)",
+   "statement": "Abduction = hypothesis generation; ranking/testing are deduction+induction. Keeping the LLM out of the deterministic modes is exactly this split \u2014 a feature, not an accident (cf. the IBE conflation).",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [
+    "docs/RESEARCH-NOTES.md \u00a71"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "T-STATUS-DERIVED",
+   "kind": "target",
+   "title": "Status as a pure function of current evidence, recomputed each pass (recovery-by-construction)",
+   "statement": "Never mutate-and-forget; recomputing makes deduction correctly non-monotonic \u2014 a refutation removes READY, overturning it restores READY. Keystone for the cluster.",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.8,
+    "effort": 0.5,
+    "tractability": 0.7,
+    "readiness": 0.8,
+    "strategic_fit": 0.85,
+    "info_value": 0.6,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-BLOCK-TRANSITIVE",
+   "kind": "target",
+   "title": "Block as a transitive closure over prerequisite edges (TMS-style invalidation)",
+   "statement": "Fix F-BLOCK-ONEHOP: a descendant of a refuted node should be BLOCKED, not AWAITING.",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.75,
+    "effort": 0.3,
+    "tractability": 0.85,
+    "readiness": 0.9,
+    "strategic_fit": 0.8,
+    "info_value": 0.6,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-OR-JUSTIFICATIONS",
+   "kind": "target",
+   "title": "Disjunctive prerequisite-sets \u2014 BLOCK only when ALL alternative justifications are dead",
+   "statement": "JTMS keeps a node IN if any justification is valid; pure-conjunction prereqs cannot model a claim provable two ways.",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.7,
+    "effort": 0.6,
+    "tractability": 0.55,
+    "readiness": 0.5,
+    "strategic_fit": 0.65,
+    "info_value": 0.55,
+    "risk": 0.4
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-GROUNDED-EXTENSION",
+   "kind": "target",
+   "title": "Compute the grounded extension over the negative sub-graph (Dung reinstatement)",
+   "statement": "A refute-of-a-refuter should reinstate the original claim; the grounded extension is unique, polynomial, skeptical \u2014 ideal for an auditable engine.",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.75,
+    "effort": 0.65,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.6,
+    "info_value": 0.65,
+    "risk": 0.45
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-BLOCK-EXPLAIN",
+   "kind": "target",
+   "title": "A BLOCK carries its minimal set of refuted ancestors (nogood / causal frontier)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.3,
+    "tractability": 0.85,
+    "readiness": 0.9,
+    "strategic_fit": 0.7,
+    "info_value": 0.4,
+    "risk": 0.15
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-DECISION-ECONOMY",
+   "kind": "reframe",
+   "title": "Name the decision weights after Peirce's economy-of-research axes (cost/value/caution/breadth)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.2,
+    "tractability": 0.9,
+    "readiness": 0.9,
+    "strategic_fit": 0.75,
+    "info_value": 0.35,
+    "risk": 0.1
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "T-ABDUCE-MINIMALITY",
+   "kind": "target",
+   "title": "Rank abduction tasks partly by parsimony (smaller graph delta preferred)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.55,
+    "effort": 0.4,
+    "tractability": 0.6,
+    "readiness": 0.6,
+    "strategic_fit": 0.65,
+    "info_value": 0.45,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-ABDUCE-COVERAGE",
+   "kind": "target",
+   "title": "Track hypothesis diversity/coverage to guard the 'bad lot' (best-of-a-poor-set)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.55,
+    "tractability": 0.45,
+    "readiness": 0.5,
+    "strategic_fit": 0.6,
+    "info_value": 0.6,
+    "risk": 0.35
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-EVIDENCE-TYPED",
+   "kind": "target",
+   "title": "Tag evidence enumerative vs eliminative + PROV source/quality; generalize on eliminative breadth",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.4,
+    "tractability": 0.7,
+    "readiness": 0.8,
+    "strategic_fit": 0.65,
+    "info_value": 0.5,
+    "risk": 0.2
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-SUPPORT-SEMANTICS",
+   "kind": "reframe",
+   "title": "Specify the BAF reading of `supports` and split negatives into undercut vs rebut",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.55,
+    "effort": 0.45,
+    "tractability": 0.6,
+    "readiness": 0.6,
+    "strategic_fit": 0.6,
+    "info_value": 0.45,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "T-SUBJECTIVE-LOGIC",
+   "kind": "target",
+   "title": "Confidence via a subjective-logic opinion (Beta from evidence counts; capped by uncertainty mass)",
+   "statement": "'Confidence capped by evidence quality' IS subjective logic: conf = (r+a\u00b7W)/(r+s+W). Cumulative fusion for independent evidence, averaging for correlated.",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.7,
+    "effort": 0.5,
+    "tractability": 0.6,
+    "readiness": 0.7,
+    "strategic_fit": 0.7,
+    "info_value": 0.55,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-NONCOMPENSATORY-GATE",
+   "kind": "target",
+   "title": "Make readiness/risk an eligibility veto before scoring (ELECTRE-style, anti-compensation)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.65,
+    "effort": 0.35,
+    "tractability": 0.75,
+    "readiness": 0.85,
+    "strategic_fit": 0.7,
+    "info_value": 0.5,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-WEIGHT-SENSITIVITY",
+   "kind": "target",
+   "title": "Weight-sensitivity report: perturb each weight \u00b120% and flag any frontier rank flip",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.35,
+    "tractability": 0.8,
+    "readiness": 0.85,
+    "strategic_fit": 0.75,
+    "info_value": 0.55,
+    "risk": 0.15
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-INFO-EVPI",
+   "kind": "target",
+   "title": "Ground info_value as a deterministic EVPI swing (decision-change if the node resolves either way)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.65,
+    "effort": 0.55,
+    "tractability": 0.55,
+    "readiness": 0.6,
+    "strategic_fit": 0.65,
+    "info_value": 0.6,
+    "risk": 0.35
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "T-CENTRALITY-DAG",
+   "kind": "target",
+   "title": "Extend unlock_centrality to full attenuated DAG reachability (Katz-on-a-DAG, one reverse pass)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.4,
+    "tractability": 0.7,
+    "readiness": 0.8,
+    "strategic_fit": 0.65,
+    "info_value": 0.45,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "C-ENGINE",
+   "to": "T-SEED",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-ABDUCE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-SNAPSHOT",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-CONF",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-HTML",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-EXAMPLE2",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-STATUS-DERIVED",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-BLOCK-TRANSITIVE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-OR-JUSTIFICATIONS",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-GROUNDED-EXTENSION",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-BLOCK-EXPLAIN",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-DECISION-ECONOMY",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-ABDUCE-MINIMALITY",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-ABDUCE-COVERAGE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-EVIDENCE-TYPED",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-SUPPORT-SEMANTICS",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-SUBJECTIVE-LOGIC",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-NONCOMPENSATORY-GATE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-WEIGHT-SENSITIVITY",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-INFO-EVPI",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-CENTRALITY-DAG",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-VALIDATE",
+   "to": "T-ABDUCE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-VALIDATE",
+   "to": "T-SEED",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-JSON",
+   "to": "T-HTML",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-JSON",
+   "to": "T-SNAPSHOT",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-EXPORT",
+   "to": "T-HTML",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-TESTS",
+   "to": "T-VALIDATE",
+   "relation": "supports",
+   "weight": 1.0
+  },
+  {
+   "from": "T-STATUS-DERIVED",
+   "to": "T-BLOCK-TRANSITIVE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-STATUS-DERIVED",
+   "to": "T-OR-JUSTIFICATIONS",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-STATUS-DERIVED",
+   "to": "T-GROUNDED-EXTENSION",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-OR-JUSTIFICATIONS",
+   "to": "T-GROUNDED-EXTENSION",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "F-BLOCK-ONEHOP",
+   "to": "T-BLOCK-TRANSITIVE",
+   "relation": "supports",
+   "weight": 1.0
+  },
+  {
+   "from": "F-FIREWALL-GROUNDED",
+   "to": "T-DECISION-ECONOMY",
+   "relation": "supports",
+   "weight": 1.0
+  },
+  {
+   "from": "T-ABDUCE",
+   "to": "T-ABDUCE-MINIMALITY",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-ABDUCE",
+   "to": "T-ABDUCE-COVERAGE",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-SUBJECTIVE-LOGIC",
+   "to": "T-CONF",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-EVIDENCE-TYPED",
+   "to": "T-CONF",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "T-WEIGHT-SENSITIVITY",
+   "to": "T-DECISION-ECONOMY",
+   "relation": "supports",
+   "weight": 1.0
+  }
+ ]
+}

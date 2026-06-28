@@ -59,6 +59,95 @@ def test_abduction_emits_for_surprises():
     assert "high-info" in triggers        # T-READY has info_value >= 0.7
 
 
+def test_validate_clean_graph_has_no_errors():
+    issues = ReasonGraph(_graph()).validate()
+    assert [i for i in issues if i["severity"] == "error"] == []
+
+
+def test_validate_catches_dangling_unknown_and_duplicate():
+    g = new_graph(thesis="bad")
+    g["nodes"] += [
+        make_node("D", "contribution", "dup", "proven"),
+        make_node("D", "widget", "dup again", "prooven"),     # duplicate id + unknown kind/status
+    ]
+    g["edges"] += [make_edge("D", "GHOST", "enables")]         # dangling 'to'
+    issues = ReasonGraph(g).validate()
+    codes = {i["code"] for i in issues}
+    assert "duplicate-id" in codes
+    assert "dangling-edge" in codes
+    assert "unknown-kind" in codes and "unknown-status" in codes
+    # dangling edge is an error -> non-empty error set
+    assert any(i["severity"] == "error" and i["code"] == "dangling-edge" for i in issues)
+
+
+def test_validate_detects_prerequisite_cycle():
+    g = new_graph(thesis="cycle")
+    g["nodes"] += [
+        make_node("A", "target", "a", "open"),
+        make_node("B", "target", "b", "open"),
+        make_node("C", "target", "c", "open"),
+    ]
+    g["edges"] += [
+        make_edge("A", "B", "enables"),
+        make_edge("B", "C", "enables"),
+        make_edge("C", "A", "enables"),   # closes the loop
+    ]
+    issues = ReasonGraph(g).validate()
+    assert any(i["code"] == "prereq-cycle" and i["severity"] == "error" for i in issues)
+
+
+def test_validate_is_deterministic():
+    g = _graph()
+    a = ReasonGraph(g).validate()
+    b = ReasonGraph(g).validate()
+    assert a == b
+
+
+def test_pass_data_is_json_serializable_and_deterministic():
+    import json
+    rg = ReasonGraph(_graph())
+    a = rg.pass_data()
+    b = rg.pass_data()
+    assert a == b                                       # deterministic
+    json.dumps(a)                                       # serializable (no sets / tuples leaking)
+    assert a["deduction"]["ready"] == ["T-READY"]
+    assert a["deduction"]["proven"] == sorted(a["deduction"]["proven"])   # sets -> sorted lists
+    assert a["decision"][0]["node"] == "T-READY"        # ranking matches decision()
+    assert a["decision"][0]["readiness"] == "ready"
+
+
+def test_node_view_reports_context_and_score():
+    rg = ReasonGraph(_graph())
+    v = rg.node_view("T-WAIT")
+    assert v["classification"] == "awaiting"
+    assert [p["id"] for p in v["prerequisites"]] == ["T-READY"]
+    assert v["frontier"] is True and v["score"] is not None
+    # a blocked node names its refuted prerequisite among negatives/prereqs
+    vb = rg.node_view("T-BLOCK")
+    assert vb["classification"] == "blocked"
+    assert "F-BAD" in [p["id"] for p in vb["prerequisites"]]
+
+
+def test_node_view_unknown_raises():
+    try:
+        ReasonGraph(_graph()).node_view("NOPE")
+        assert False, "expected KeyError"
+    except KeyError:
+        pass
+
+
+def test_export_mermaid_and_dot_are_deterministic_and_status_colored():
+    rg = ReasonGraph(_graph())
+    m1, m2 = rg.to_mermaid(), rg.to_mermaid()
+    assert m1 == m2 and m1.startswith("flowchart TD")    # deterministic
+    assert ":::proven" in m1 and ":::refuted" in m1 and ":::ready" in m1   # status classes applied
+    assert "classDef proven" in m1
+    dot = rg.to_dot()
+    assert dot.startswith("digraph reasongraph") and dot.rstrip().endswith("}")
+    assert '"C1" -> "T-READY"' in dot                    # prerequisite edge rendered
+    assert "fillcolor" in dot                            # nodes status-filled
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")
