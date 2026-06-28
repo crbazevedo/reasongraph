@@ -59,6 +59,50 @@ def test_abduction_emits_for_surprises():
     assert "high-info" in triggers        # T-READY has info_value >= 0.7
 
 
+def test_validate_clean_graph_has_no_errors():
+    issues = ReasonGraph(_graph()).validate()
+    assert [i for i in issues if i["severity"] == "error"] == []
+
+
+def test_validate_catches_dangling_unknown_and_duplicate():
+    g = new_graph(thesis="bad")
+    g["nodes"] += [
+        make_node("D", "contribution", "dup", "proven"),
+        make_node("D", "widget", "dup again", "prooven"),     # duplicate id + unknown kind/status
+    ]
+    g["edges"] += [make_edge("D", "GHOST", "enables")]         # dangling 'to'
+    issues = ReasonGraph(g).validate()
+    codes = {i["code"] for i in issues}
+    assert "duplicate-id" in codes
+    assert "dangling-edge" in codes
+    assert "unknown-kind" in codes and "unknown-status" in codes
+    # dangling edge is an error -> non-empty error set
+    assert any(i["severity"] == "error" and i["code"] == "dangling-edge" for i in issues)
+
+
+def test_validate_detects_prerequisite_cycle():
+    g = new_graph(thesis="cycle")
+    g["nodes"] += [
+        make_node("A", "target", "a", "open"),
+        make_node("B", "target", "b", "open"),
+        make_node("C", "target", "c", "open"),
+    ]
+    g["edges"] += [
+        make_edge("A", "B", "enables"),
+        make_edge("B", "C", "enables"),
+        make_edge("C", "A", "enables"),   # closes the loop
+    ]
+    issues = ReasonGraph(g).validate()
+    assert any(i["code"] == "prereq-cycle" and i["severity"] == "error" for i in issues)
+
+
+def test_validate_is_deterministic():
+    g = _graph()
+    a = ReasonGraph(g).validate()
+    b = ReasonGraph(g).validate()
+    assert a == b
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")

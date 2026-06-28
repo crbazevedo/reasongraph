@@ -147,6 +147,92 @@ class ReasonGraph:
         ranked.sort(reverse=True)
         return ranked
 
+    # ---------------- VALIDATE (pure linter) ----------------
+    def validate(self):
+        """Lint the graph for structural problems. Pure + deterministic — no LLM, no randomness.
+
+        Returns a list of issues sorted for stable output; each is a dict
+        ``{severity, code, where, msg}`` with severity ``"error"`` (the engine will misbehave) or
+        ``"warning"`` (likely a typo / smell). Checks: duplicate ids, missing required fields,
+        unknown kind/status/relation, attrs out of [0,1], dangling/self edges, prerequisite cycles.
+        """
+        cfg = self.cfg
+        nodes = self.g.get("nodes", [])
+        edges = self.g.get("edges", [])
+        known_rel = cfg.prereq_rel | cfg.neg_rel | cfg.semantic_rel
+        issues = []
+        def add(sev, code, where, msg):
+            issues.append(dict(severity=sev, code=code, where=where, msg=msg))
+
+        # --- nodes ---
+        seen = set()
+        for k, n in enumerate(nodes):
+            nid = n.get("id")
+            where = nid or f"nodes[{k}]"
+            if not nid:
+                add("error", "missing-id", where, "node has no 'id'")
+            elif nid in seen:
+                add("error", "duplicate-id", nid, "duplicate node id")
+            else:
+                seen.add(nid)
+            for field in ("kind", "title", "status"):
+                if not n.get(field):
+                    add("error", "missing-field", where, f"node missing '{field}'")
+            kind, status = n.get("kind"), n.get("status")
+            if kind and kind not in cfg.kinds:
+                add("warning", "unknown-kind", where, f"kind '{kind}' not in the configured vocabulary")
+            if status and status not in cfg.statuses:
+                add("warning", "unknown-status", where,
+                    f"status '{status}' not in the ladder — it will count as neither proven nor refuted")
+            for ak, av in (n.get("attrs") or {}).items():
+                if isinstance(av, (int, float)) and not (0.0 <= av <= 1.0):
+                    add("warning", "attr-range", where, f"attr '{ak}'={av} is outside [0,1]")
+
+        # --- edges ---
+        for k, e in enumerate(edges):
+            where = f"edges[{k}]"
+            f, t, r = e.get("from"), e.get("to"), e.get("relation")
+            if f not in seen:
+                add("error", "dangling-edge", where, f"'from' references unknown node '{f}'")
+            if t not in seen:
+                add("error", "dangling-edge", where, f"'to' references unknown node '{t}'")
+            if f is not None and f == t:
+                add("warning", "self-edge", where, f"edge from '{f}' to itself")
+            if not r:
+                add("error", "missing-field", where, "edge missing 'relation'")
+            elif r not in known_rel:
+                add("warning", "unknown-relation", where,
+                    f"relation '{r}' is in no group (prereq/negative/semantic) — treated as semantic")
+
+        # --- prerequisite cycles (over valid prereq edges only) ---
+        adj = {i: [] for i in seen}
+        for e in edges:
+            if e.get("relation") in cfg.prereq_rel and e.get("from") in seen and e.get("to") in seen:
+                adj[e["from"]].append(e["to"])
+        WHITE, GREY, BLACK = 0, 1, 2
+        color = {i: WHITE for i in seen}
+        reported = set()
+        def visit(u, stack):
+            color[u] = GREY
+            stack.append(u)
+            for v in adj[u]:
+                if color[v] == GREY:
+                    cyc = stack[stack.index(v):] + [v]
+                    key = frozenset(cyc)
+                    if key not in reported:
+                        reported.add(key)
+                        add("error", "prereq-cycle", " -> ".join(cyc), "circular prerequisite dependency")
+                elif color[v] == WHITE:
+                    visit(v, stack)
+            stack.pop()
+            color[u] = BLACK
+        for i in sorted(seen):
+            if color[i] == WHITE:
+                visit(i, [])
+
+        issues.sort(key=lambda x: (0 if x["severity"] == "error" else 1, x["code"], str(x["where"])))
+        return issues
+
     # ---------------- report + evolve ----------------
     def format_report(self):
         d = self.deduction()

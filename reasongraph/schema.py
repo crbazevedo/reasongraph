@@ -25,7 +25,8 @@ THIN = frozenset({"empirical-thin"})                     # supported but confide
 
 PREREQ_REL = frozenset({"enables", "depends-on"})        # drive readiness (deduction)
 NEG_REL = frozenset({"refutes", "tensions-with"})        # drive blocking + abduction
-# everything else (supports / generalizes / validated-by / abduced-from) is a semantic link.
+SEMANTIC_REL = frozenset({"supports", "generalizes", "validated-by", "abduced-from"})  # lineage
+# any relation outside the three groups above is unknown to the engine (validate flags it).
 
 # decision weights: positive terms ~sum to 1; risk subtracts.
 DEFAULT_WEIGHTS = dict(payoff=.26, centrality=.20, tract=.16, readiness=.12, fit=.12, info=.12, risk=.10)
@@ -42,6 +43,9 @@ class GraphConfig:
     thin: frozenset = THIN
     prereq_rel: frozenset = PREREQ_REL
     neg_rel: frozenset = NEG_REL
+    semantic_rel: frozenset = SEMANTIC_REL
+    kinds: frozenset = frozenset(KINDS)            # validate: flag node kinds outside this set
+    statuses: frozenset = frozenset(STATUSES)      # validate: flag statuses outside this ladder
     weights: dict = field(default_factory=lambda: dict(DEFAULT_WEIGHTS))
     ready_bonus: tuple = (1.0, 0.6, 0.2)        # ready / awaiting / else
     payoff_default: float = 0.4                 # assumed payoff of an unscored downstream node
