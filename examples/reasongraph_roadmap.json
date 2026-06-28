@@ -166,8 +166,8 @@
    "kind": "target",
    "title": "`pass --json` + `reasongraph show <node>` for tooling",
    "statement": "",
-   "status": "open",
-   "confidence": 0.5,
+   "status": "proven",
+   "confidence": 0.9,
    "attrs": {
     "payoff": 0.7,
     "effort": 0.3,
@@ -177,8 +177,13 @@
     "info_value": 0.5,
     "risk": 0.1
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/cli.py"
+   ],
+   "frontier": false,
+   "notes": [
+    "shipped: pass --json + show + 3 tests"
+   ]
   },
   {
    "id": "T-SEED",

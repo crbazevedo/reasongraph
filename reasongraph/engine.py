@@ -233,6 +233,57 @@ class ReasonGraph:
         issues.sort(key=lambda x: (0 if x["severity"] == "error" else 1, x["code"], str(x["where"])))
         return issues
 
+    # ---------------- structured views (pure; for tooling) ----------------
+    def pass_data(self):
+        """The full pass as a JSON-serializable dict — same content as the text report, for tooling.
+
+        Pure + deterministic. Sets become sorted lists; the ranked frontier carries the score,
+        readiness tag, and centrality so downstream tools need not recompute them.
+        """
+        d = self.deduction()
+        tag = {self.cfg.ready_bonus[0]: "ready", self.cfg.ready_bonus[1]: "awaiting"}
+        ranked = [dict(node=i, score=sc, readiness=tag.get(rb, "blocked"), centrality=round(cen, 3),
+                       title=n["title"]) for sc, i, cen, rb, n in self.decision(d)]
+        return dict(
+            thesis=self.g.get("meta", {}).get("thesis", ""),
+            counts=dict(nodes=len(self.g["nodes"]), proven=len(d["proven"]),
+                        refuted=len(d["refuted"]),
+                        frontier=sum(1 for n in self.g["nodes"] if n.get("frontier"))),
+            deduction=dict(proven=sorted(d["proven"]), refuted=sorted(d["refuted"]),
+                           ready=sorted(d["ready"]),
+                           awaiting={k: d["awaiting"][k] for k in sorted(d["awaiting"])},
+                           blocked={k: d["blocked"][k] for k in sorted(d["blocked"])}),
+            decision=ranked,
+            induction=[dict(kind=k, node=i, msg=m) for k, i, m in self.induction(d)],
+            abduction=self.abduction(d),
+        )
+
+    def node_view(self, nid):
+        """A single node plus its graph context (prereqs/dependents/negatives + classification).
+
+        Pure + deterministic. Raises KeyError for an unknown id. The decision score is included
+        only when the node is on the frontier.
+        """
+        if nid not in self.N:
+            raise KeyError(f"unknown node {nid}")
+        n = self.N[nid]
+        d = self.deduction()
+        cls = ("ready" if nid in d["ready"] else "awaiting" if nid in d["awaiting"]
+               else "blocked" if nid in d["blocked"]
+               else "proven" if nid in d["proven"] else "refuted" if nid in d["refuted"] else "—")
+        def ref(i):
+            return dict(id=i, status=self.N[i]["status"], title=self.N[i]["title"]) if i in self.N else dict(id=i)
+        score = next((sc for sc, i, *_ in self.decision(d) if i == nid), None)
+        return dict(
+            id=nid, kind=n["kind"], title=n["title"], statement=n.get("statement", ""),
+            status=n["status"], classification=cls, confidence=n.get("confidence"),
+            frontier=bool(n.get("frontier")), score=score, attrs=n.get("attrs", {}),
+            evidence=n.get("evidence", []), notes=n.get("notes", []),
+            prerequisites=[ref(p) for p in self.pre[nid]],
+            negatives=[ref(p) for p in self.neg[nid]],
+            feeds=[ref(t) for t in self.out[nid]],
+        )
+
     # ---------------- report + evolve ----------------
     def format_report(self):
         d = self.deduction()

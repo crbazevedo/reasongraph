@@ -103,6 +103,39 @@ def test_validate_is_deterministic():
     assert a == b
 
 
+def test_pass_data_is_json_serializable_and_deterministic():
+    import json
+    rg = ReasonGraph(_graph())
+    a = rg.pass_data()
+    b = rg.pass_data()
+    assert a == b                                       # deterministic
+    json.dumps(a)                                       # serializable (no sets / tuples leaking)
+    assert a["deduction"]["ready"] == ["T-READY"]
+    assert a["deduction"]["proven"] == sorted(a["deduction"]["proven"])   # sets -> sorted lists
+    assert a["decision"][0]["node"] == "T-READY"        # ranking matches decision()
+    assert a["decision"][0]["readiness"] == "ready"
+
+
+def test_node_view_reports_context_and_score():
+    rg = ReasonGraph(_graph())
+    v = rg.node_view("T-WAIT")
+    assert v["classification"] == "awaiting"
+    assert [p["id"] for p in v["prerequisites"]] == ["T-READY"]
+    assert v["frontier"] is True and v["score"] is not None
+    # a blocked node names its refuted prerequisite among negatives/prereqs
+    vb = rg.node_view("T-BLOCK")
+    assert vb["classification"] == "blocked"
+    assert "F-BAD" in [p["id"] for p in vb["prerequisites"]]
+
+
+def test_node_view_unknown_raises():
+    try:
+        ReasonGraph(_graph()).node_view("NOPE")
+        assert False, "expected KeyError"
+    except KeyError:
+        pass
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")

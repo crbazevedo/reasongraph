@@ -1,20 +1,40 @@
 """Command-line interface.
 
-    reasongraph pass [graph.json] [--log decision_log.md]
+    reasongraph pass [graph.json] [--log decision_log.md] [--json]
+    reasongraph show <graph.json> <node-id> [--json]
     reasongraph add-finding <graph.json> <node-id> <status> [--conf C] [--note "..."] [--ev PTR]
     reasongraph validate [graph.json] [--json]
 
 `pass` runs deduction + induction + abduction + the ranked frontier (and optionally appends a
-decision-log line). `add-finding` records a result on an existing node — positive OR negative,
-both first-class — flips it off the frontier if proven/refuted, saves, and re-runs the pass.
-`validate` lints the graph (dangling edges, unknown status/kind/relation, prerequisite cycles);
-it exits non-zero if any *error*-severity issue is found, so it doubles as a CI gate.
+decision-log line); `--json` emits the whole pass as a machine-readable object instead.
+`show` prints one node plus its graph context (prereqs / dependents / classification / score).
+`add-finding` records a result on an existing node — positive OR negative, both first-class —
+flips it off the frontier if proven/refuted, saves, and re-runs the pass. `validate` lints the
+graph (dangling edges, unknown status/kind/relation, prerequisite cycles); it exits non-zero if
+any *error*-severity issue is found, so it doubles as a CI gate.
 """
 from __future__ import annotations
 import argparse
 import json
 import sys
 from .engine import ReasonGraph, save
+
+
+def _format_node(v):
+    def refs(items):
+        return ", ".join(f"{r['id']}({r.get('status', '?')})" for r in items) or "none"
+    L = [f"{v['id']}  [{v['kind']} · {v['status']} · {v['classification']}]",
+         f"  {v['title']}"]
+    if v.get("statement"):
+        L.append(f"  statement: {v['statement']}")
+    sc = f"{v['score']}" if v["score"] is not None else "—"
+    L += [f"  confidence: {v['confidence']}   frontier: {v['frontier']}   score: {sc}",
+          f"  prerequisites: {refs(v['prerequisites'])}",
+          f"  negatives:     {refs(v['negatives'])}",
+          f"  feeds:         {refs(v['feeds'])}"]
+    if v.get("evidence"):
+        L.append(f"  evidence: {'; '.join(str(e) for e in v['evidence'])}")
+    return "\n".join(L)
 
 
 def main(argv=None):
@@ -25,6 +45,12 @@ def main(argv=None):
     pp = sub.add_parser("pass", help="run a reasoning pass (deduction/induction/abduction/decision)")
     pp.add_argument("graph", nargs="?", default="graph.json")
     pp.add_argument("--log", default=None, help="append a top-3 line to this decision log")
+    pp.add_argument("--json", action="store_true", help="emit the full pass as JSON for tooling")
+
+    sp = sub.add_parser("show", help="show one node + its graph context (prereqs/dependents/score)")
+    sp.add_argument("graph")
+    sp.add_argument("node")
+    sp.add_argument("--json", action="store_true", help="emit the node view as JSON")
 
     af = sub.add_parser("add-finding", help="record a result on a node, then re-run the pass")
     af.add_argument("graph")
@@ -41,7 +67,20 @@ def main(argv=None):
     args = p.parse_args(argv)
 
     if args.cmd == "pass":
-        ReasonGraph.from_file(args.graph).report(args.log)
+        rg = ReasonGraph.from_file(args.graph)
+        if args.json:
+            print(json.dumps(rg.pass_data(), indent=1))
+        else:
+            rg.report(args.log)
+    elif args.cmd == "show":
+        try:
+            view = ReasonGraph.from_file(args.graph).node_view(args.node)
+        except KeyError as e:
+            print(e); return 1
+        if args.json:
+            print(json.dumps(view, indent=1))
+        else:
+            print(_format_node(view))
     elif args.cmd == "add-finding":
         rg = ReasonGraph.from_file(args.graph)
         try:
