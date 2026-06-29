@@ -207,6 +207,52 @@ def test_export_mermaid_and_dot_are_deterministic_and_status_colored():
     assert "fillcolor" in dot                            # nodes status-filled
 
 
+def test_abduce_payload_carries_tasks_and_contract():
+    import json
+    rg = ReasonGraph(_graph())                          # F-BAD refuted -> a refutation task exists
+    payload = json.loads(rg.abduce_payload())
+    assert "instructions" in payload and "tasks" in payload
+    assert any(t["trigger"] == "refutation" and t["node"] == "F-BAD" for t in payload["tasks"])
+    assert rg.abduce_payload() == rg.abduce_payload()   # deterministic
+
+
+def test_ingest_abduced_appends_node_and_lineage_edge():
+    rg = ReasonGraph(_graph())
+    added, rejected = rg.ingest_abduced([
+        {"abduced_from": "F-BAD", "id": "R-FIX", "kind": "reframe",
+         "title": "a repair", "statement": "weaker-but-true claim"},
+    ])
+    assert added == ["R-FIX"] and rejected == []
+    n = rg.N["R-FIX"]
+    assert n["status"] == "conjectural" and rg.is_frontier(n) is True
+    # lineage edge R-FIX --abduced-from--> F-BAD
+    assert any(e["from"] == "R-FIX" and e["to"] == "F-BAD" and e["relation"] == "abduced-from"
+               for e in rg.g["edges"])
+
+
+def test_ingest_abduced_is_firewalled_from_scoring():
+    """The LLM proposes structure only: any attrs/score it sends are ignored — neutral defaults win."""
+    rg = ReasonGraph(_graph())
+    rg.ingest_abduced([{"abduced_from": "F-BAD", "id": "H-X", "kind": "hypothesis",
+                        "title": "h", "attrs": {"payoff": 1.0, "info_value": 1.0}, "confidence": 0.99}])
+    a = rg.N["H-X"]["attrs"]
+    assert a["payoff"] == 0.5 and a["info_value"] == 0.5   # default A(), NOT the LLM's 1.0
+    assert rg.N["H-X"]["confidence"] == 0.5
+
+
+def test_ingest_abduced_rejects_bad_proposals():
+    rg = ReasonGraph(_graph())
+    added, rejected = rg.ingest_abduced([
+        {"abduced_from": "F-BAD", "id": "C1", "kind": "reframe", "title": "dup id"},      # exists
+        {"abduced_from": "GHOST", "id": "R-OK", "kind": "reframe", "title": "dangling src"},
+        {"abduced_from": "F-BAD", "kind": "reframe", "title": "no id"},                   # missing id
+    ])
+    assert added == []
+    reasons = {p.get("id", "?"): why for p, why in rejected}
+    assert "C1" in reasons and "R-OK" in reasons and "?" in reasons
+    assert ReasonGraph(rg.g).validate() == ReasonGraph(_graph()).validate()  # graph unharmed (no dangling)
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")

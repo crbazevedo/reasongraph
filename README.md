@@ -40,7 +40,14 @@ reasongraph validate examples/governed_innovation.json   # lint the graph (CI-fr
 reasongraph pass examples/governed_innovation.json --json # machine-readable pass for tooling
 reasongraph show examples/governed_innovation.json T-INDEX # one node + its graph context
 reasongraph export examples/governed_innovation.json --mermaid  # status-colored diagram (or --dot)
+reasongraph abduce examples/governed_innovation.json --dry-run   # the abduction payload for an LLM
+reasongraph abduce examples/governed_innovation.json --run "<llm-cmd>"  # LLM proposes nodes; engine writes them back
 ```
+
+`abduce` is the only command that involves an LLM, and it keeps the firewall intact: the LLM runs as
+an **external** `--run` command that reads the emitted tasks and returns proposed nodes; the engine
+assigns their decision attributes (the LLM proposes structure, never scores), validates them, and
+writes them back with `abduced-from` lineage edges.
 
 `reasongraph` dogfoods its own roadmap: [`examples/reasongraph_roadmap.py`](examples/reasongraph_roadmap.py)
 models the backlog — including targets distilled from the reasoning/KR literature
