@@ -125,6 +125,28 @@ class ReasonGraph:
                 ready[i] = True
         return dict(proven=proven, refuted=refuted, ready=ready, blocked=blocked, awaiting=awaiting)
 
+    def blocking_causes(self, i, d=None):
+        """The minimal set of REFUTED ancestors responsible for `i` being BLOCKED (the nogood / root
+        cause), traced through any intervening blocked prerequisites — dependency-directed, à la a
+        TMS. Pure + deterministic; returns [] if `i` is not blocked. `deduction()` reports the
+        *immediate* dead prerequisite; this reports the *root* refutation(s) to point at.
+        """
+        d = d or self.deduction()
+        if i not in d["blocked"]:
+            return []
+        R, roots, seen = self.cfg.refuted, set(), set()
+        def walk(j):
+            if j in seen:
+                return
+            seen.add(j)
+            for p in self.pre[j]:
+                if self.N[p]["status"] in R:
+                    roots.add(p)
+                elif p in d["blocked"]:
+                    walk(p)
+        walk(i)
+        return sorted(roots)
+
     # ---------------- INDUCTION ----------------
     def induction(self, d):
         out = []
@@ -324,6 +346,7 @@ class ReasonGraph:
             id=nid, kind=n["kind"], title=n["title"], statement=n.get("statement", ""),
             status=n["status"], classification=cls, confidence=n.get("confidence"),
             frontier=self.is_frontier(n), score=score, attrs=n.get("attrs", {}),
+            blocked_by=self.blocking_causes(nid, d),
             evidence=n.get("evidence", []), notes=n.get("notes", []),
             prerequisites=[ref(p) for p in self.pre[nid]],
             negatives=[ref(p) for p in self.neg[nid]],
@@ -403,7 +426,7 @@ class ReasonGraph:
              "[DEDUCTION] ready (all prereqs proven): " + (", ".join(d["ready"]) or "none")]
         if d["blocked"]:
             L.append("           blocked by refutation: "
-                     + "; ".join(f"{k}<-{v}" for k, v in d["blocked"].items()))
+                     + "; ".join(f"{k}<-{self.blocking_causes(k, d)}" for k in d["blocked"]))
         L += ["", "[DECISION] ranked frontier — what to tackle next:",
               f"  {'score':>6}  {'node':22} {'rdy':>5} {'cen':>4}  title"]
         for sc, i, cen, rb, n in self.decision(d):

@@ -20,7 +20,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from reasongraph import A, make_node, make_edge, new_graph, save, ReasonGraph  # noqa: E402
 
-g = new_graph(thesis="a lean, public, stdlib-only governed outer-loop engine people can adopt")
+g = new_graph(thesis="trustworthy auditable substrate for the agentic outer loop — "
+                     "pillar 1: sound deductive core (trust is load-bearing); "
+                     "pillar 2: defensible decision layer; pillar 3: lean & adoptable")
 N, E = g["nodes"], g["edges"]
 def node(*a, **k): N.append(make_node(*a, **k))
 def edge(*a, **k): E.append(make_edge(*a, **k))
@@ -53,7 +55,8 @@ node("T-JSON", "target", "`pass --json` + `reasongraph show <node>` for tooling"
 node("T-SEED", "target", "`reasongraph seed <name>` — scaffold a seed.py + empty graph",
      "open", attrs=A(payoff=.55, effort=.3, tract=.85, ready=.9, fit=.6, info=.3, risk=.1))
 node("T-ABDUCE", "target", "`reasongraph abduce --run` — pipe tasks to an LLM, write nodes back",
-     "open", attrs=A(payoff=.8, effort=.55, tract=.55, ready=.6, fit=.85, info=.6, risk=.35))
+     "open", attrs=A(payoff=.8, effort=.55, tract=.55, ready=.6, fit=.7, info=.6, risk=.35))
+     # fit recalibrated .85 -> .7: valuable adoption tooling (pillar 3), but not load-bearing for trust
 node("T-SNAPSHOT", "target", "snapshot/history: a passes/ log + `diff` between two passes",
      "open", attrs=A(payoff=.6, effort=.5, tract=.65, ready=.6, fit=.65, info=.55, risk=.2))
 node("T-CONF", "target", "opt-in confidence auto-aggregation from evidence[]",
@@ -72,6 +75,14 @@ node("F-BLOCK-ONEHOP", "finding",
                "T-BLOCK-TRANSITIVE — deduction now propagates BLOCKED across the reachable subgraph.",
      evidence=["reproduction 2026-06: P refuted, C blocked, GC awaiting", "docs/RESEARCH-NOTES.md §3",
                "fixed by T-BLOCK-TRANSITIVE"])
+node("F-FIT-WEAK-LEVER", "finding",
+     "strategic_fit (weight .12) is too weak to express thesis priority against unlock-centrality (.20)",
+     "proven", attrs=A(info=.7),
+     statement="Dogfood 2026-06: after honestly raising fit on the pillar-1 correctness cluster, the "
+               "engine still ranked the high-centrality T-ABDUCE top. Re-pointing the programme via "
+               "strategic_fit alone cannot override a hub's unlock-centrality — motivates revisiting "
+               "the decision weights (T-DECISION-ECONOMY).",
+     evidence=["dogfood pass: fit-bumped cluster, T-ABDUCE still #1 by centrality"])
 node("F-FIREWALL-GROUNDED", "finding",
      "The LLM-out-of-deduction/decision firewall is theory-aligned (Peirce generation/justification)",
      "proven", attrs=A(info=.5),
@@ -92,19 +103,21 @@ node("T-BLOCK-TRANSITIVE", "target",
      "proven", attrs=A(payoff=.75, effort=.3, tract=.85, ready=.9, fit=.8, info=.6, risk=.25),
      statement="Fix F-BLOCK-ONEHOP: a descendant of a refuted node should be BLOCKED, not AWAITING.",
      evidence=["reasongraph/engine.py: transitive deduction() via memoized DFS"])
+# pillar 1 (sound deductive core): strategic_fit raised — trust is load-bearing, this is the priority.
 node("T-OR-JUSTIFICATIONS", "target",
      "Disjunctive prerequisite-sets — BLOCK only when ALL alternative justifications are dead",
-     "open", attrs=A(payoff=.7, effort=.6, tract=.55, ready=.5, fit=.65, info=.55, risk=.4),
+     "open", attrs=A(payoff=.7, effort=.6, tract=.55, ready=.5, fit=.9, info=.55, risk=.4),
      statement="JTMS keeps a node IN if any justification is valid; pure-conjunction prereqs cannot "
                "model a claim provable two ways.")
 node("T-GROUNDED-EXTENSION", "target",
      "Compute the grounded extension over the negative sub-graph (Dung reinstatement)",
-     "open", attrs=A(payoff=.75, effort=.65, tract=.5, ready=.5, fit=.6, info=.65, risk=.45),
+     "open", attrs=A(payoff=.75, effort=.65, tract=.5, ready=.5, fit=.92, info=.65, risk=.45),
      statement="A refute-of-a-refuter should reinstate the original claim; the grounded extension is "
                "unique, polynomial, skeptical — ideal for an auditable engine.")
 node("T-BLOCK-EXPLAIN", "target",
      "A BLOCK carries its minimal set of refuted ancestors (nogood / causal frontier)",
-     "open", attrs=A(payoff=.6, effort=.3, tract=.85, ready=.9, fit=.7, info=.4, risk=.15))
+     "proven", attrs=A(payoff=.6, effort=.3, tract=.85, ready=.9, fit=.88, info=.4, risk=.15),
+     evidence=["reasongraph/engine.py: blocking_causes() + node_view.blocked_by + report"])
 
 # --- research-derived TARGETS: abduction / induction cluster ---
 node("T-DECISION-ECONOMY", "reframe",
@@ -166,6 +179,7 @@ edge("T-STATUS-DERIVED", "T-GROUNDED-EXTENSION", "enables")
 edge("T-OR-JUSTIFICATIONS", "T-GROUNDED-EXTENSION", "enables")
 edge("F-BLOCK-ONEHOP", "T-BLOCK-TRANSITIVE", "supports")     # the verified finding motivates the fix
 edge("F-FIREWALL-GROUNDED", "T-DECISION-ECONOMY", "supports")
+edge("F-FIT-WEAK-LEVER", "T-DECISION-ECONOMY", "supports")
 edge("T-ABDUCE", "T-ABDUCE-MINIMALITY", "enables")
 edge("T-ABDUCE", "T-ABDUCE-COVERAGE", "enables")
 edge("T-SUBJECTIVE-LOGIC", "T-CONF", "enables")

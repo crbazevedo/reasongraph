@@ -30,8 +30,10 @@ def _format_node(v):
     if v.get("statement"):
         L.append(f"  statement: {v['statement']}")
     sc = f"{v['score']}" if v["score"] is not None else "—"
-    L += [f"  confidence: {v['confidence']}   frontier: {v['frontier']}   score: {sc}",
-          f"  prerequisites: {refs(v['prerequisites'])}",
+    L += [f"  confidence: {v['confidence']}   frontier: {v['frontier']}   score: {sc}"]
+    if v.get("blocked_by"):
+        L.append(f"  blocked by (root refutation): {', '.join(v['blocked_by'])}")
+    L += [f"  prerequisites: {refs(v['prerequisites'])}",
           f"  negatives:     {refs(v['negatives'])}",
           f"  feeds:         {refs(v['feeds'])}"]
     if v.get("evidence"):
