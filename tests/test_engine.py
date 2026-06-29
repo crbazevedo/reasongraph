@@ -378,6 +378,36 @@ def test_migrate_backfills_and_is_idempotent():
     assert rg.N["A"]["title"] == "a" and rg.N["A"]["status"] == "open"
 
 
+def test_opinion_no_evidence_is_base_rate_and_full_uncertainty():
+    rg = ReasonGraph(_graph())
+    op = rg.opinion(make_node("X", "finding", "x", "open"))   # no evidence
+    assert op["confidence"] == 0.5 and op["uncertainty"] == 1.0
+    assert op["support"] == 0 and op["refute"] == 0
+
+
+def test_opinion_supporting_evidence_raises_confidence_and_lowers_uncertainty():
+    rg = ReasonGraph(_graph())
+    one = rg.opinion(make_node("X", "finding", "x", "open", evidence=["a"]))
+    three = rg.opinion(make_node("Y", "finding", "y", "open", evidence=["a", "b", "c"]))
+    assert 0.5 < one["confidence"] < three["confidence"]      # monotone in supporting count
+    assert one["uncertainty"] > three["uncertainty"]
+    assert three["support"] == 3 and three["refute"] == 0
+
+
+def test_opinion_refuting_evidence_pulls_below_base_rate():
+    rg = ReasonGraph(_graph())
+    op = rg.opinion(make_node("X", "finding", "x", "open",
+                              evidence=[{"ptr": "repro", "polarity": "refute"}]))
+    assert op["confidence"] < 0.5 and op["refute"] == 1
+    assert rg.opinion(make_node("Z", "finding", "z", "open")) == \
+        rg.opinion(make_node("Z", "finding", "z", "open"))    # deterministic
+
+
+def test_node_view_includes_opinion():
+    v = ReasonGraph(_graph()).node_view("F-BAD")
+    assert "opinion" in v and "confidence" in v["opinion"]
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")

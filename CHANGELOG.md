@@ -6,6 +6,18 @@ Versioning](https://semver.org/): pre-1.0, **MINOR** = new features, **PATCH** =
 schema** version (`meta.schema`) is bumped only on a breaking change to the on-disk format and has
 its own upgrade path (`reasongraph migrate`). See [docs/UPGRADING.md](docs/UPGRADING.md).
 
+## [Unreleased]
+
+### Added
+- **Subjective-logic confidence** — `ReasonGraph.opinion(node)` derives an opinion
+  (belief / disbelief / uncertainty / projected confidence) from a node's `evidence[]` in closed
+  form: `confidence = (r + a·W)/(r+s+W)`. With no evidence, confidence equals the base rate and
+  uncertainty is 1 — confidence must be *earned* with evidence, not asserted. Evidence items are
+  bare pointers (supporting) or dicts with a `polarity` of `refute`/`challenge`/`against`. Surfaced
+  in `show` / `node_view`; tunable via new `GraphConfig.prior_weight` (W) and `base_rate` (a). Pure
+  and deterministic; does not change the decision ranking. Backward compatible (string evidence
+  counts as supporting).
+
 ## [0.2.0] — 2026-06-29
 
 Backward compatible: **existing `reasongraph/v1` graphs load and run unchanged — no migration
