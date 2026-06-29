@@ -85,6 +85,18 @@ node("F-FIT-WEAK-LEVER", "finding",
                "strategic_fit alone cannot override a hub's unlock-centrality — motivates revisiting "
                "the decision weights (T-DECISION-ECONOMY).",
      evidence=["dogfood pass: fit-bumped cluster, T-ABDUCE still #1 by centrality"])
+node("T-ADOPTER-KIT", "target",
+     "Adopter upgrade kit: CHANGELOG + SemVer + version/migrate + UPGRADING guide",
+     "proven", attrs=A(payoff=.7, effort=.4, tract=.8, ready=.9, fit=.85, info=.4, risk=.15),
+     statement="Operator-requested: external adopters need change logs, an install-update path, a "
+               "way to learn + apply new features to a live project, and graph backward-compatibility.",
+     evidence=["CHANGELOG.md", "docs/UPGRADING.md", "reasongraph/cli.py: version/migrate + --config"])
+node("F-GRAPH-BACKWARD-COMPAT", "finding",
+     "Existing reasongraph/v1 graphs load and run unchanged — all 0.2.0 changes are additive",
+     "proven", attrs=A(info=.6),
+     statement="Schema stays v1; the engine reads optional node fields defensively; migrate is "
+               "idempotent + non-destructive. Verified by a legacy-graph load test + a migrate test.",
+     evidence=["tests: legacy graph loads/runs; migrate backfills + idempotent"])
 node("F-PORT-CONFIG-ONLY", "finding",
      "Ported to a second domain (security audit) with ONLY GraphConfig changes — no engine edits",
      "proven", attrs=A(info=.6),
@@ -192,6 +204,8 @@ for t in TARGETS:
     edge("C-ENGINE", t, "enables")
 edge("C-CLI", "T-CLI-CONFIG", "enables")
 edge("F-CLI-CONFIG-FIXED", "T-CLI-CONFIG", "supports")   # the gap motivates the fix
+edge("C-CLI", "T-ADOPTER-KIT", "enables")
+edge("F-GRAPH-BACKWARD-COMPAT", "T-ADOPTER-KIT", "supports")
 
 # --- starter-backlog inter-dependencies ---
 edge("T-VALIDATE", "T-ABDUCE", "enables")    # write LLM-returned nodes back only if we can lint them

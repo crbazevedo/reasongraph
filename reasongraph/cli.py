@@ -7,6 +7,10 @@
     reasongraph sensitivity [graph.json] [--delta 0.2] [--json]
     reasongraph add-finding <graph.json> <node-id> <status> [--conf C] [--note "..."] [--ev PTR]
     reasongraph validate [graph.json] [--json]
+    reasongraph migrate [graph.json]          # upgrade an older graph to the current schema
+    reasongraph version                       # engine version + supported graph schema
+
+Every graph-reading command also accepts `--config MODULE:NAME` to load a domain GraphConfig.
 
 `pass` runs deduction + induction + abduction + the ranked frontier (and optionally appends a
 decision-log line); `--json` emits the whole pass as a machine-readable object instead.
@@ -22,7 +26,9 @@ import argparse
 import json
 import os
 import sys
+from . import __version__
 from .engine import ReasonGraph, save
+from .schema import SCHEMA_VERSION
 
 
 def _load_config(spec):
@@ -130,6 +136,8 @@ def _abduce(args):
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     p = argparse.ArgumentParser(prog="reasongraph", description="reason over a claim graph")
+    p.add_argument("--version", action="version",
+                   version=f"reasongraph {__version__} (graph schema {SCHEMA_VERSION})")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     # shared on every subcommand: load a domain GraphConfig so ported graphs work end-to-end.
@@ -181,7 +189,15 @@ def main(argv=None):
     vp.add_argument("graph", nargs="?", default="graph.json")
     vp.add_argument("--json", action="store_true", help="emit issues as JSON for tooling")
 
+    mp = add("migrate", help="upgrade an older graph to the current schema, in place (idempotent)")
+    mp.add_argument("graph", nargs="?", default="graph.json")
+
+    sub.add_parser("version", help="print the engine version and supported graph schema")
+
     args = p.parse_args(argv)
+    if args.cmd == "version":
+        print(f"reasongraph {__version__} (graph schema {SCHEMA_VERSION})")
+        return 0
     try:
         args._cfg = _load_config(getattr(args, "config", None))
     except Exception as e:
@@ -235,6 +251,16 @@ def main(argv=None):
                 print(f"  [{mark}] {i['code']:18} {i['where']}: {i['msg']}")
             print(f"\n{errors} error(s), {len(issues) - errors} warning(s)")
         return 1 if errors else 0
+    elif args.cmd == "migrate":
+        rg = ReasonGraph.from_file(args.graph, args._cfg)
+        changes = rg.migrate()
+        if not changes:
+            print(f"{args.graph}: already current ({SCHEMA_VERSION}) — nothing to do")
+        else:
+            save(rg.g, args.graph)
+            print(f"{args.graph}: migrated to {SCHEMA_VERSION}")
+            for c in changes:
+                print(f"  - {c}")
     return 0
 
 

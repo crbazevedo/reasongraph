@@ -172,13 +172,13 @@ class ReasonGraph:
                         "(reframe / weaker-but-true claim / new assumption / repair path) that "
                         "resolves it; add it with an 'abduced-from' edge.")))
         for i, miss in d["blocked"].items():
-            if self.N[i]["attrs"].get("payoff", 0) >= self.cfg.blocked_payoff_min:
+            if (self.N[i].get("attrs") or {}).get("payoff", 0) >= self.cfg.blocked_payoff_min:
                 tasks.append(dict(trigger="blocked-goal", node=i,
                     prompt=(f"BLOCKED high-value target: {self.N[i]['title']} (blocked by refuted "
                             f"{miss}). Abduce a repair path / alternative lemma routing around the "
                             "refuted prerequisite.")))
         for n in self.g["nodes"]:
-            if self.is_frontier(n) and n["attrs"].get("info_value", 0) >= self.cfg.high_info_min:
+            if self.is_frontier(n) and (n.get("attrs") or {}).get("info_value", 0) >= self.cfg.high_info_min:
                 tasks.append(dict(trigger="high-info", node=n["id"],
                     prompt=(f"HIGH-INFORMATION target {n['id']}: enumerate the 2-3 outcomes "
                             "(positive AND negative) and what each entails downstream, so the "
@@ -238,8 +238,8 @@ class ReasonGraph:
         pd = self.cfg.payoff_default
 
         def centrality(i):
-            one = sum(self.N[t]["attrs"].get("payoff", pd) for t in self.out[i] if t in self.N)
-            two = sum(0.5 * self.N[t2]["attrs"].get("payoff", pd)
+            one = sum((self.N[t].get("attrs") or {}).get("payoff", pd) for t in self.out[i] if t in self.N)
+            two = sum(0.5 * (self.N[t2].get("attrs") or {}).get("payoff", pd)
                       for t in self.out[i] if t in self.N
                       for t2 in self.out.get(t, []) if t2 in self.N)
             return min(1.0, (one + two) / 3.0)
@@ -248,7 +248,7 @@ class ReasonGraph:
         for n in self.g["nodes"]:
             if not self.is_frontier(n):
                 continue
-            a = n["attrs"]; i = n["id"]; cen = centrality(i)
+            a = n.get("attrs") or {}; i = n["id"]; cen = centrality(i)
             rb = rb_ready if i in d["ready"] else (rb_await if i in d["awaiting"] else rb_else)
             score = (W["payoff"] * a.get("payoff", .5)
                      + W["centrality"] * cen
@@ -297,6 +297,7 @@ class ReasonGraph:
         ``"warning"`` (likely a typo / smell). Checks: duplicate ids, missing required fields,
         unknown kind/status/relation, attrs out of [0,1], dangling/self edges, prerequisite cycles.
         """
+        from .schema import SCHEMA_VERSION
         cfg = self.cfg
         nodes = self.g.get("nodes", [])
         edges = self.g.get("edges", [])
@@ -304,6 +305,14 @@ class ReasonGraph:
         issues = []
         def add(sev, code, where, msg):
             issues.append(dict(severity=sev, code=code, where=where, msg=msg))
+
+        # --- schema version ---
+        sv = self.g.get("meta", {}).get("schema")
+        if not sv:
+            add("warning", "schema-missing", "meta", "no meta.schema — run `reasongraph migrate`")
+        elif sv != SCHEMA_VERSION:
+            add("warning", "schema-version", "meta",
+                f"graph schema {sv!r} != engine {SCHEMA_VERSION!r} — run `reasongraph migrate`")
 
         # --- nodes ---
         seen = set()
@@ -373,6 +382,29 @@ class ReasonGraph:
 
         issues.sort(key=lambda x: (0 if x["severity"] == "error" else 1, x["code"], str(x["where"])))
         return issues
+
+    def migrate(self):
+        """Bring an older graph up to the current schema, idempotently and non-destructively.
+
+        Additive only: stamps `meta.schema`, and backfills optional node keys that newer tooling
+        expects (`attrs`, `evidence`) so external consumers don't trip on their absence. Never
+        removes, renames, or reinterprets existing data — and never fabricates `frontier` intent.
+        Returns a list of human-readable change strings ([] if the graph was already current). This
+        is also the seam where any *future* breaking schema bump will live.
+        """
+        from .schema import SCHEMA_VERSION, A
+        changes = []
+        meta = self.g.setdefault("meta", {})
+        if meta.get("schema") != SCHEMA_VERSION:
+            changes.append(f"meta.schema {meta.get('schema')!r} -> {SCHEMA_VERSION!r}")
+            meta["schema"] = SCHEMA_VERSION
+        for n in self.g.get("nodes", []):
+            if "attrs" not in n:
+                n["attrs"] = A(); changes.append(f"{n.get('id', '?')}: backfilled default attrs")
+            if "evidence" not in n:
+                n["evidence"] = []; changes.append(f"{n.get('id', '?')}: backfilled empty evidence")
+        self._index()
+        return changes
 
     # ---------------- structured views (pure; for tooling) ----------------
     def pass_data(self):
