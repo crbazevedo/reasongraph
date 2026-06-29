@@ -42,6 +42,7 @@ reasongraph show examples/governed_innovation.json T-INDEX # one node + its grap
 reasongraph export examples/governed_innovation.json --mermaid  # status-colored diagram (or --dot)
 reasongraph abduce examples/governed_innovation.json --dry-run   # the abduction payload for an LLM
 reasongraph abduce examples/governed_innovation.json --run "<llm-cmd>"  # LLM proposes nodes; engine writes them back
+reasongraph sensitivity examples/reasongraph_roadmap.json  # perturb each weight ±20%; flag rank flips
 ```
 
 `abduce` is the only command that involves an LLM, and it keeps the firewall intact: the LLM runs as

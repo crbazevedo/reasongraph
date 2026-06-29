@@ -342,6 +342,27 @@
    "frontier": false
   },
   {
+   "id": "F-TOP-ROBUST-TAIL-FRAGILE",
+   "kind": "finding",
+   "title": "The top recommendation is weight-robust; only the mid-frontier ordering is fragile",
+   "statement": "sensitivity audit (2026-06): the #1 pick is STABLE under every single-weight \u00b120% perturbation, while ~9 mid-frontier nodes change rank. Refines F-FIT-WEAK-LEVER: 'what to do next' is trustworthy; deeper ranks should not be over-interpreted.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.6,
+    "risk": 0.3
+   },
+   "evidence": [
+    "reasongraph sensitivity examples/reasongraph_roadmap.json"
+   ],
+   "frontier": false
+  },
+  {
    "id": "F-FIREWALL-GROUNDED",
    "kind": "finding",
    "title": "The LLM-out-of-deduction/decision firewall is theory-aligned (Peirce generation/justification)",
@@ -601,7 +622,7 @@
    "kind": "target",
    "title": "Weight-sensitivity report: perturb each weight \u00b120% and flag any frontier rank flip",
    "statement": "",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.6,
@@ -612,8 +633,10 @@
     "info_value": 0.55,
     "risk": 0.15
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py: weight_sensitivity() + `sensitivity` CLI"
+   ],
+   "frontier": false
   },
   {
    "id": "T-INFO-EVPI",
@@ -855,6 +878,12 @@
   },
   {
    "from": "F-FIT-WEAK-LEVER",
+   "to": "T-DECISION-ECONOMY",
+   "relation": "supports",
+   "weight": 1.0
+  },
+  {
+   "from": "F-TOP-ROBUST-TAIL-FRAGILE",
    "to": "T-DECISION-ECONOMY",
    "relation": "supports",
    "weight": 1.0

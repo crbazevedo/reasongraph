@@ -84,6 +84,13 @@ node("F-FIT-WEAK-LEVER", "finding",
                "strategic_fit alone cannot override a hub's unlock-centrality — motivates revisiting "
                "the decision weights (T-DECISION-ECONOMY).",
      evidence=["dogfood pass: fit-bumped cluster, T-ABDUCE still #1 by centrality"])
+node("F-TOP-ROBUST-TAIL-FRAGILE", "finding",
+     "The top recommendation is weight-robust; only the mid-frontier ordering is fragile",
+     "proven", attrs=A(info=.6),
+     statement="sensitivity audit (2026-06): the #1 pick is STABLE under every single-weight ±20% "
+               "perturbation, while ~9 mid-frontier nodes change rank. Refines F-FIT-WEAK-LEVER: "
+               "'what to do next' is trustworthy; deeper ranks should not be over-interpreted.",
+     evidence=["reasongraph sensitivity examples/reasongraph_roadmap.json"])
 node("F-FIREWALL-GROUNDED", "finding",
      "The LLM-out-of-deduction/decision firewall is theory-aligned (Peirce generation/justification)",
      "proven", attrs=A(info=.5),
@@ -148,7 +155,8 @@ node("T-NONCOMPENSATORY-GATE", "target",
      "open", attrs=A(payoff=.65, effort=.35, tract=.75, ready=.85, fit=.7, info=.5, risk=.25))
 node("T-WEIGHT-SENSITIVITY", "target",
      "Weight-sensitivity report: perturb each weight ±20% and flag any frontier rank flip",
-     "open", attrs=A(payoff=.6, effort=.35, tract=.8, ready=.85, fit=.75, info=.55, risk=.15))
+     "proven", attrs=A(payoff=.6, effort=.35, tract=.8, ready=.85, fit=.75, info=.55, risk=.15),
+     evidence=["reasongraph/engine.py: weight_sensitivity() + `sensitivity` CLI"])
 node("T-INFO-EVPI", "target",
      "Ground info_value as a deterministic EVPI swing (decision-change if the node resolves either way)",
      "open", attrs=A(payoff=.65, effort=.55, tract=.55, ready=.6, fit=.65, info=.6, risk=.35))
@@ -181,6 +189,7 @@ edge("T-OR-JUSTIFICATIONS", "T-GROUNDED-EXTENSION", "enables")
 edge("F-BLOCK-ONEHOP", "T-BLOCK-TRANSITIVE", "supports")     # the verified finding motivates the fix
 edge("F-FIREWALL-GROUNDED", "T-DECISION-ECONOMY", "supports")
 edge("F-FIT-WEAK-LEVER", "T-DECISION-ECONOMY", "supports")
+edge("F-TOP-ROBUST-TAIL-FRAGILE", "T-DECISION-ECONOMY", "supports")
 edge("T-ABDUCE", "T-ABDUCE-MINIMALITY", "enables")
 edge("T-ABDUCE", "T-ABDUCE-COVERAGE", "enables")
 edge("T-SUBJECTIVE-LOGIC", "T-CONF", "enables")

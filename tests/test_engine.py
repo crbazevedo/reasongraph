@@ -253,6 +253,40 @@ def test_ingest_abduced_rejects_bad_proposals():
     assert ReasonGraph(rg.g).validate() == ReasonGraph(_graph()).validate()  # graph unharmed (no dangling)
 
 
+def test_weight_sensitivity_deterministic_and_covers_all_weights():
+    rg = ReasonGraph(_graph())
+    a, b = rg.weight_sensitivity(), rg.weight_sensitivity()
+    assert a == b                                                   # deterministic
+    assert {p["weight"] for p in a["perturbations"]} == set(rg.cfg.weights)
+    assert len(a["perturbations"]) == 2 * len(rg.cfg.weights)       # ± per weight
+    assert a["baseline_top"] == a["baseline"][0]
+
+
+def test_weight_sensitivity_flags_unstable_top():
+    # A wins on payoff, B wins on info, tuned so a ±20% weight shift crosses the tie.
+    g = new_graph(thesis="near-tie")
+    g["nodes"] += [
+        make_node("A", "target", "a", "open", attrs=A(payoff=.8, info=.0)),
+        make_node("B", "target", "b", "open", attrs=A(payoff=.3, info=.975)),
+    ]
+    rep = ReasonGraph(g).weight_sensitivity(0.2)
+    assert rep["baseline_top"] == "A"
+    assert any(p["top_changed"] for p in rep["perturbations"])      # some ±20% flips the top
+    assert "A" in rep["fragile_nodes"] and "B" in rep["fragile_nodes"]
+
+
+def test_weight_sensitivity_stable_when_dominant():
+    g = new_graph(thesis="dominant")
+    g["nodes"] += [
+        make_node("A", "target", "a", "open", attrs=A(payoff=.9, info=.9, tract=.9, ready=.9, fit=.9)),
+        make_node("B", "target", "b", "open", attrs=A(payoff=.1, info=.1, tract=.1, ready=.1, fit=.1, risk=.9)),
+    ]
+    rep = ReasonGraph(g).weight_sensitivity(0.2)
+    assert rep["baseline_top"] == "A"
+    assert not any(p["top_changed"] for p in rep["perturbations"])  # A dominates every dimension
+    assert rep["fragile_nodes"] == []
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")
