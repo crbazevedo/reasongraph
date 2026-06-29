@@ -3,6 +3,7 @@
     reasongraph pass [graph.json] [--log decision_log.md] [--json]
     reasongraph show <graph.json> <node-id> [--json]
     reasongraph export [graph.json] [--mermaid|--dot]
+    reasongraph abduce [graph.json] [--run "<llm-cmd>"] [--dry-run]
     reasongraph add-finding <graph.json> <node-id> <status> [--conf C] [--note "..."] [--ev PTR]
     reasongraph validate [graph.json] [--json]
 
@@ -41,6 +42,45 @@ def _format_node(v):
     return "\n".join(L)
 
 
+def _abduce(args):
+    """Drive an external LLM through one abduction pass: emit tasks -> run the command -> ingest the
+    proposed nodes -> validate -> save -> re-run the pass. The LLM stays a black box behind --run."""
+    import subprocess
+    rg = ReasonGraph.from_file(args.graph)
+    payload = rg.abduce_payload()
+    if args.dry_run or not args.run:
+        print(payload)
+        if not args.run and not args.dry_run:
+            print("\n(no --run given; pipe the JSON above to an LLM, or pass "
+                  '--run "<cmd>" to do it in one step.)', file=sys.stderr)
+        return 0
+    proc = subprocess.run(args.run, shell=True, input=payload, capture_output=True, text=True)
+    if proc.returncode != 0:
+        print(f"--run command failed (exit {proc.returncode}):\n{proc.stderr}", file=sys.stderr)
+        return 1
+    try:
+        proposals = json.loads(proc.stdout)
+    except json.JSONDecodeError as e:
+        print(f"could not parse proposals as JSON: {e}\n--- got ---\n{proc.stdout[:500]}", file=sys.stderr)
+        return 1
+    if isinstance(proposals, dict):                  # tolerate {"proposals":[...]} / {"nodes":[...]}
+        proposals = proposals.get("proposals") or proposals.get("nodes") or [proposals]
+    added, rejected = rg.ingest_abduced(proposals)
+    errors = [i for i in rg.validate() if i["severity"] == "error"]
+    if errors:
+        print("aborting (not saved): ingest produced validation errors:", file=sys.stderr)
+        for i in errors:
+            print(f"  [E] {i['code']} {i['where']}: {i['msg']}", file=sys.stderr)
+        return 1
+    save(rg.g, args.graph)
+    print(f"added {len(added)} node(s): {', '.join(added) or 'none'}")
+    for p, why in rejected:
+        print(f"  rejected {p.get('id', '?')}: {why}")
+    print()
+    rg.report()
+    return 0
+
+
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     p = argparse.ArgumentParser(prog="reasongraph", description="reason over a claim graph")
@@ -62,6 +102,14 @@ def main(argv=None):
     fmt.add_argument("--mermaid", action="store_const", dest="fmt", const="mermaid")
     fmt.add_argument("--dot", action="store_const", dest="fmt", const="dot")
     ep.set_defaults(fmt="mermaid")
+
+    bp = sub.add_parser("abduce", help="run the abduction pass through an external LLM, write nodes back")
+    bp.add_argument("graph", nargs="?", default="graph.json")
+    bp.add_argument("--run", default=None,
+                    help="shell command that reads the tasks JSON on stdin and returns a proposals "
+                         "JSON array on stdout (the LLM stays external)")
+    bp.add_argument("--dry-run", action="store_true",
+                    help="print the LLM payload (tasks + contract) and exit; run nothing")
 
     af = sub.add_parser("add-finding", help="record a result on a node, then re-run the pass")
     af.add_argument("graph")
@@ -95,6 +143,8 @@ def main(argv=None):
     elif args.cmd == "export":
         rg = ReasonGraph.from_file(args.graph)
         print(rg.to_dot() if args.fmt == "dot" else rg.to_mermaid())
+    elif args.cmd == "abduce":
+        return _abduce(args)
     elif args.cmd == "add-finding":
         rg = ReasonGraph.from_file(args.graph)
         try:

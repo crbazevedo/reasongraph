@@ -55,8 +55,9 @@ node("T-JSON", "target", "`pass --json` + `reasongraph show <node>` for tooling"
 node("T-SEED", "target", "`reasongraph seed <name>` — scaffold a seed.py + empty graph",
      "open", attrs=A(payoff=.55, effort=.3, tract=.85, ready=.9, fit=.6, info=.3, risk=.1))
 node("T-ABDUCE", "target", "`reasongraph abduce --run` — pipe tasks to an LLM, write nodes back",
-     "open", attrs=A(payoff=.8, effort=.55, tract=.55, ready=.6, fit=.7, info=.6, risk=.35))
+     "proven", attrs=A(payoff=.8, effort=.55, tract=.55, ready=.6, fit=.7, info=.6, risk=.35),
      # fit recalibrated .85 -> .7: valuable adoption tooling (pillar 3), but not load-bearing for trust
+     evidence=["reasongraph/engine.py: abduce_payload()/ingest_abduced() + CLI --run (LLM external)"])
 node("T-SNAPSHOT", "target", "snapshot/history: a passes/ log + `diff` between two passes",
      "open", attrs=A(payoff=.6, effort=.5, tract=.65, ready=.6, fit=.65, info=.55, risk=.2))
 node("T-CONF", "target", "opt-in confidence auto-aggregation from evidence[]",

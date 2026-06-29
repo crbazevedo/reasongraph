@@ -205,7 +205,7 @@
    "kind": "target",
    "title": "`reasongraph abduce --run` \u2014 pipe tasks to an LLM, write nodes back",
    "statement": "",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.8,
@@ -216,8 +216,10 @@
     "info_value": 0.6,
     "risk": 0.35
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py: abduce_payload()/ingest_abduced() + CLI --run (LLM external)"
+   ],
+   "frontier": false
   },
   {
    "id": "T-SNAPSHOT",

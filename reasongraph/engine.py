@@ -16,7 +16,7 @@ are pure and reproducible. That separation is what keeps the ranking auditable.
 """
 from __future__ import annotations
 import json
-from .schema import GraphConfig
+from .schema import GraphConfig, make_node, make_edge
 
 
 def load(path):
@@ -184,6 +184,52 @@ class ReasonGraph:
                             "(positive AND negative) and what each entails downstream, so the "
                             "result is decision-useful either way.")))
         return tasks
+
+    # the LLM contract for `abduce`: an external command reads this on stdin, returns proposals.
+    ABDUCE_CONTRACT = (
+        "You are the abduction step of a reason-graph. For EACH task below, PROPOSE one new node "
+        "(a hypothesis, reframe, weaker-but-true claim, or repair path). "
+        "Return ONLY a JSON array; each item is "
+        '{"abduced_from": "<the task\'s node id>", "id": "<NEW unique id, e.g. H-... or R-...>", '
+        '"kind": "hypothesis" or "reframe", "title": "<short label>", "statement": "<the claim>"}. '
+        "Do NOT include scores, confidence, payoff, or any decision attributes — the engine assigns "
+        "those. You propose structure only; you never rank.")
+
+    def abduce_payload(self, d=None):
+        """Build the stdin payload for an external LLM abduction pass: the emitted hypothesis tasks
+        plus the JSON return-contract. Pure — the engine never calls an LLM itself. See
+        ingest_abduced() for writing the response back."""
+        d = d or self.deduction()
+        return json.dumps(dict(instructions=self.ABDUCE_CONTRACT, tasks=self.abduction(d)), indent=1)
+
+    def ingest_abduced(self, proposals):
+        """Append LLM-proposed nodes (+ an `abduced-from` lineage edge) to the graph.
+
+        The firewall, enforced here: the LLM proposes STRUCTURE only (id/kind/title/statement); the
+        engine assigns NEUTRAL default decision attrs — any attrs/score/confidence in a proposal are
+        ignored, so the LLM can never influence the ranking. New nodes enter as `conjectural` and
+        on the frontier, to be ranked deterministically next pass. Returns ``(added, rejected)``
+        where rejected is a list of ``(proposal, reason)``. Pure w.r.t. external state.
+        """
+        added, rejected = [], []
+        existing = set(self.N)
+        for p in proposals if isinstance(proposals, list) else []:
+            nid, src = p.get("id"), p.get("abduced_from")
+            kind, title = p.get("kind"), p.get("title")
+            if not nid or not kind or not title:
+                rejected.append((p, "missing id/kind/title")); continue
+            if nid in existing:
+                rejected.append((p, f"id '{nid}' already exists")); continue
+            if src is not None and src not in existing:
+                rejected.append((p, f"abduced_from '{src}' is not a node")); continue
+            # NEUTRAL attrs (default A()) — never the LLM's; status conjectural; on the frontier.
+            self.g["nodes"].append(make_node(nid, kind, title, p.get("status", "conjectural"),
+                                             statement=p.get("statement", ""), frontier=True))
+            if src is not None:
+                self.g["edges"].append(make_edge(nid, src, "abduced-from"))
+            existing.add(nid); added.append(nid)
+        self._index()
+        return added, rejected
 
     # ---------------- DECISION ----------------
     def decision(self, d):
