@@ -232,8 +232,8 @@ class ReasonGraph:
         return added, rejected
 
     # ---------------- DECISION ----------------
-    def decision(self, d):
-        W = self.cfg.weights
+    def decision(self, d, weights=None):
+        W = weights or self.cfg.weights
         rb_ready, rb_await, rb_else = self.cfg.ready_bonus
         pd = self.cfg.payoff_default
 
@@ -260,6 +260,33 @@ class ReasonGraph:
             ranked.append((round(score, 3), i, cen, rb, n))
         ranked.sort(reverse=True)
         return ranked
+
+    def weight_sensitivity(self, delta=0.2):
+        """Perturb each decision weight by ±delta (relative) and report frontier rank changes.
+
+        Pure + deterministic. Answers "how fragile is the ranking to the hand-set weights?" — the
+        audit behind F-FIT-WEAK-LEVER / T-DECISION-ECONOMY. `top_changed` (does the *recommended
+        next action* flip?) is the decision-relevant signal; `fragile_nodes` are those that move
+        rank under some single-weight ±delta. Scaling one weight can only re-order nodes that trade
+        off *different* dimensions, so a stable top here is a genuine robustness statement.
+        """
+        d = self.deduction()
+        base = [i for _, i, *_ in self.decision(d)]
+        base_pos = {i: p for p, i in enumerate(base)}
+        perturbations, fragile = [], set()
+        for k in sorted(self.cfg.weights):
+            for sign in (-1, 1):
+                w = dict(self.cfg.weights)
+                w[k] = round(w[k] * (1 + sign * delta), 6)
+                order = [i for _, i, *_ in self.decision(d, w)]
+                changed = [i for p, i in enumerate(order) if base_pos.get(i) != p]
+                fragile.update(changed)
+                perturbations.append(dict(weight=k, sign=("+" if sign > 0 else "-"),
+                                          top=(order[0] if order else None),
+                                          top_changed=(order[:1] != base[:1]),
+                                          rank_changed=changed))
+        return dict(delta=delta, baseline=base, baseline_top=(base[0] if base else None),
+                    fragile_nodes=sorted(fragile), perturbations=perturbations)
 
     # ---------------- VALIDATE (pure linter) ----------------
     def validate(self):

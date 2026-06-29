@@ -4,6 +4,7 @@
     reasongraph show <graph.json> <node-id> [--json]
     reasongraph export [graph.json] [--mermaid|--dot]
     reasongraph abduce [graph.json] [--run "<llm-cmd>"] [--dry-run]
+    reasongraph sensitivity [graph.json] [--delta 0.2] [--json]
     reasongraph add-finding <graph.json> <node-id> <status> [--conf C] [--note "..."] [--ev PTR]
     reasongraph validate [graph.json] [--json]
 
@@ -39,6 +40,29 @@ def _format_node(v):
           f"  feeds:         {refs(v['feeds'])}"]
     if v.get("evidence"):
         L.append(f"  evidence: {'; '.join(str(e) for e in v['evidence'])}")
+    return "\n".join(L)
+
+
+def _format_sensitivity(rep):
+    pct = int(round(rep["delta"] * 100))
+    L = [f"weight-sensitivity (±{pct}%) — baseline top: {rep['baseline_top'] or 'none'}",
+         f"  {'weight':12} {'-':>10}  {'+':>10}"]
+    by = {}
+    for p in rep["perturbations"]:
+        by.setdefault(p["weight"], {})[p["sign"]] = p
+    for k in sorted(by):
+        def cell(sign):
+            p = by[k].get(sign)
+            if not p:
+                return ""
+            return (p["top"] + ("*" if p["top_changed"] else "")) if p["top"] else "—"
+        L.append(f"  {k:12} {cell('-'):>10}  {cell('+'):>10}")
+    flips = sorted({p["weight"] + p["sign"] for p in rep["perturbations"] if p["top_changed"]})
+    if flips:
+        L.append(f"\n  TOP PICK FLIPS under: {', '.join(flips)}  (* marks a changed top)")
+    else:
+        L.append(f"\n  top pick is STABLE under every single-weight ±{pct}% perturbation")
+    L.append(f"  rank-fragile nodes: {', '.join(rep['fragile_nodes']) or 'none'}")
     return "\n".join(L)
 
 
@@ -111,6 +135,11 @@ def main(argv=None):
     bp.add_argument("--dry-run", action="store_true",
                     help="print the LLM payload (tasks + contract) and exit; run nothing")
 
+    np = sub.add_parser("sensitivity", help="perturb each decision weight ±delta; flag rank flips")
+    np.add_argument("graph", nargs="?", default="graph.json")
+    np.add_argument("--delta", type=float, default=0.2, help="relative perturbation (default 0.2 = ±20%%)")
+    np.add_argument("--json", action="store_true", help="emit the report as JSON")
+
     af = sub.add_parser("add-finding", help="record a result on a node, then re-run the pass")
     af.add_argument("graph")
     af.add_argument("node")
@@ -145,6 +174,12 @@ def main(argv=None):
         print(rg.to_dot() if args.fmt == "dot" else rg.to_mermaid())
     elif args.cmd == "abduce":
         return _abduce(args)
+    elif args.cmd == "sensitivity":
+        rep = ReasonGraph.from_file(args.graph).weight_sensitivity(args.delta)
+        if args.json:
+            print(json.dumps(rep, indent=1))
+        else:
+            print(_format_sensitivity(rep))
     elif args.cmd == "add-finding":
         rg = ReasonGraph.from_file(args.graph)
         try:
