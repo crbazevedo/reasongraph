@@ -283,7 +283,7 @@
    "kind": "target",
    "title": "a second worked example in a different domain (security audit)",
    "statement": "",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.65,
@@ -294,8 +294,10 @@
     "info_value": 0.45,
     "risk": 0.15
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "examples/security_audit.py \u2014 ported via GraphConfig only, no engine changes"
+   ],
+   "frontier": false
   },
   {
    "id": "F-BLOCK-ONEHOP",
@@ -340,6 +342,65 @@
     "dogfood pass: fit-bumped cluster, T-ABDUCE still #1 by centrality"
    ],
    "frontier": false
+  },
+  {
+   "id": "F-PORT-CONFIG-ONLY",
+   "kind": "finding",
+   "title": "Ported to a second domain (security audit) with ONLY GraphConfig changes \u2014 no engine edits",
+   "statement": "examples/security_audit.py reuses the engine/modes/decision/loop verbatim; only the status ladder, kind vocabulary, and weights changed. The 'domain-invariant' claim is earned, not asserted.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.6,
+    "risk": 0.3
+   },
+   "evidence": [
+    "examples/security_audit.py runs a clean pass under a security GraphConfig"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "F-CLI-CONFIG-FIXED",
+   "kind": "finding",
+   "title": "CLI commands hardcode the default GraphConfig \u2014 a ported graph can't be passed/validated via CLI",
+   "statement": "Discovered building T-EXAMPLE2: `reasongraph validate/pass` on security_audit.json uses the default ladder, so custom statuses (confirmed/false-positive) misclassify and emit spurious warnings. The Python API takes a config; the CLI has no way to.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.65,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "T-CLI-CONFIG",
+   "kind": "target",
+   "title": "Let the CLI load a domain GraphConfig (e.g. --config module:NAME) so ported graphs work end-to-end",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.65,
+    "effort": 0.4,
+    "tractability": 0.75,
+    "readiness": 0.85,
+    "strategic_fit": 0.8,
+    "info_value": 0.45,
+    "risk": 0.2
+   },
+   "evidence": [],
+   "frontier": true
   },
   {
    "id": "F-TOP-ROBUST-TAIL-FRAGILE",
@@ -802,6 +863,24 @@
    "from": "C-ENGINE",
    "to": "T-CENTRALITY-DAG",
    "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-ENGINE",
+   "to": "T-CLI-CONFIG",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-CLI",
+   "to": "T-CLI-CONFIG",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "F-CLI-CONFIG-FIXED",
+   "to": "T-CLI-CONFIG",
+   "relation": "supports",
    "weight": 1.0
   },
   {

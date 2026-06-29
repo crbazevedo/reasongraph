@@ -65,7 +65,8 @@ node("T-CONF", "target", "opt-in confidence auto-aggregation from evidence[]",
 node("T-HTML", "target", "no-deps static HTML viewer of the graph + ranked frontier",
      "open", attrs=A(payoff=.75, effort=.6, tract=.6, ready=.5, fit=.7, info=.4, risk=.25))
 node("T-EXAMPLE2", "target", "a second worked example in a different domain (security audit)",
-     "open", attrs=A(payoff=.65, effort=.45, tract=.8, ready=.9, fit=.75, info=.45, risk=.15))
+     "proven", attrs=A(payoff=.65, effort=.45, tract=.8, ready=.9, fit=.75, info=.45, risk=.15),
+     evidence=["examples/security_audit.py — ported via GraphConfig only, no engine changes"])
 
 # --- research-derived FINDINGS (see docs/RESEARCH-NOTES.md) ---
 node("F-BLOCK-ONEHOP", "finding",
@@ -84,6 +85,22 @@ node("F-FIT-WEAK-LEVER", "finding",
                "strategic_fit alone cannot override a hub's unlock-centrality — motivates revisiting "
                "the decision weights (T-DECISION-ECONOMY).",
      evidence=["dogfood pass: fit-bumped cluster, T-ABDUCE still #1 by centrality"])
+node("F-PORT-CONFIG-ONLY", "finding",
+     "Ported to a second domain (security audit) with ONLY GraphConfig changes — no engine edits",
+     "proven", attrs=A(info=.6),
+     statement="examples/security_audit.py reuses the engine/modes/decision/loop verbatim; only the "
+               "status ladder, kind vocabulary, and weights changed. The 'domain-invariant' claim is "
+               "earned, not asserted.",
+     evidence=["examples/security_audit.py runs a clean pass under a security GraphConfig"])
+node("F-CLI-CONFIG-FIXED", "finding",
+     "CLI commands hardcode the default GraphConfig — a ported graph can't be passed/validated via CLI",
+     "proven", attrs=A(info=.65),
+     statement="Discovered building T-EXAMPLE2: `reasongraph validate/pass` on security_audit.json "
+               "uses the default ladder, so custom statuses (confirmed/false-positive) misclassify "
+               "and emit spurious warnings. The Python API takes a config; the CLI has no way to.")
+node("T-CLI-CONFIG", "target",
+     "Let the CLI load a domain GraphConfig (e.g. --config module:NAME) so ported graphs work end-to-end",
+     "open", attrs=A(payoff=.65, effort=.4, tract=.75, ready=.85, fit=.8, info=.45, risk=.2))
 node("F-TOP-ROBUST-TAIL-FRAGILE", "finding",
      "The top recommendation is weight-robust; only the mid-frontier ordering is fragile",
      "proven", attrs=A(info=.6),
@@ -169,9 +186,11 @@ TARGETS = ("T-SEED", "T-ABDUCE", "T-SNAPSHOT", "T-CONF", "T-HTML", "T-EXAMPLE2",
            "T-STATUS-DERIVED", "T-BLOCK-TRANSITIVE", "T-OR-JUSTIFICATIONS", "T-GROUNDED-EXTENSION",
            "T-BLOCK-EXPLAIN", "T-DECISION-ECONOMY", "T-ABDUCE-MINIMALITY", "T-ABDUCE-COVERAGE",
            "T-EVIDENCE-TYPED", "T-SUPPORT-SEMANTICS", "T-SUBJECTIVE-LOGIC", "T-NONCOMPENSATORY-GATE",
-           "T-WEIGHT-SENSITIVITY", "T-INFO-EVPI", "T-CENTRALITY-DAG")
+           "T-WEIGHT-SENSITIVITY", "T-INFO-EVPI", "T-CENTRALITY-DAG", "T-CLI-CONFIG")
 for t in TARGETS:
     edge("C-ENGINE", t, "enables")
+edge("C-CLI", "T-CLI-CONFIG", "enables")
+edge("F-CLI-CONFIG-FIXED", "T-CLI-CONFIG", "supports")   # the gap motivates the fix
 
 # --- starter-backlog inter-dependencies ---
 edge("T-VALIDATE", "T-ABDUCE", "enables")    # write LLM-returned nodes back only if we can lint them

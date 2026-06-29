@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from reasongraph import A, make_node, make_edge, new_graph, ReasonGraph  # noqa: E402
+from reasongraph import A, make_node, make_edge, new_graph, ReasonGraph, GraphConfig  # noqa: E402
 
 
 def _graph():
@@ -285,6 +285,25 @@ def test_weight_sensitivity_stable_when_dominant():
     assert rep["baseline_top"] == "A"
     assert not any(p["top_changed"] for p in rep["perturbations"])  # A dominates every dimension
     assert rep["fragile_nodes"] == []
+
+
+def test_custom_config_ports_status_ladder_without_engine_changes():
+    """Portability: a domain-tuned GraphConfig (the only porting surface) drives the SAME engine —
+    here a security-audit ladder where 'confirmed' satisfies and 'false-positive' blocks."""
+    cfg = GraphConfig(proven=frozenset({"confirmed"}), refuted=frozenset({"false-positive"}))
+    g = new_graph(thesis="ported")
+    g["nodes"] += [
+        make_node("V", "vuln", "a confirmed vuln", "confirmed"),
+        make_node("VF", "vuln", "a false positive", "false-positive"),
+        make_node("R", "remediation", "fix for V", "open", attrs=A(payoff=.9), frontier=True),
+        make_node("RF", "remediation", "fix for VF", "open", attrs=A(payoff=.9), frontier=True),
+    ]
+    g["edges"] += [make_edge("V", "R", "enables"), make_edge("VF", "RF", "enables")]
+    rg = ReasonGraph(g, cfg)
+    d = rg.deduction()
+    assert "R" in d["ready"]           # confirmed prereq satisfies -> READY (custom proven set)
+    assert "RF" in d["blocked"]        # false-positive prereq blocks -> BLOCKED (custom refuted set)
+    assert "R" in [i for _, i, *_ in rg.decision(d)]
 
 
 def test_unknown_node_add_finding_raises():
