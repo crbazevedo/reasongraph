@@ -72,22 +72,57 @@ class ReasonGraph:
 
     # ---------------- DEDUCTION ----------------
     def deduction(self):
+        """Classify every node by propagating proven/refuted along prerequisite edges.
+
+        BLOCKED is TRANSITIVE (TMS-style invalidation, Doyle 1979): a node is blocked if any
+        prerequisite is *dead* — refuted OR itself blocked — so a refutation invalidates the whole
+        reachable subgraph, not just immediate children. A prerequisite only counts as satisfied
+        when PROVEN; an unresolved (ready/awaiting) prerequisite leaves the dependent AWAITING.
+        Pure + deterministic; memoized DFS with a cycle guard (cycles are reported by `validate`).
+        """
         P, R = self.cfg.proven, self.cfg.refuted
         proven = {i for i, n in self.N.items() if n["status"] in P}
         refuted = {i for i, n in self.N.items() if n["status"] in R}
+        state, cause, visiting = {}, {}, set()
+
+        def classify(i):
+            n = self.N[i]
+            if n["status"] in P:
+                return "proven"
+            if n["status"] in R:
+                return "refuted"
+            if i in state:
+                return state[i]
+            if i in visiting:                 # prerequisite cycle — don't recurse forever
+                return "awaiting"
+            visiting.add(i)
+            dead, pending = [], []
+            for p in self.pre[i]:
+                ps = classify(p)
+                if ps in ("refuted", "blocked"):
+                    dead.append(p)
+                elif ps != "proven":          # ready/awaiting: present but not yet satisfied
+                    pending.append(p)
+            visiting.discard(i)
+            if dead:
+                state[i] = "blocked"; cause[i] = dead
+            elif pending:
+                state[i] = "awaiting"; cause[i] = pending
+            else:
+                state[i] = "ready"
+            return state[i]
+
         ready, blocked, awaiting = {}, {}, {}
         for i, n in self.N.items():
             if n["status"] != "open":
                 continue
-            ps = self.pre[i]
-            ref_ps = [p for p in ps if self.N[p]["status"] in R]
-            open_ps = [p for p in ps if self.N[p]["status"] not in P | R]
-            if ref_ps:
-                blocked[i] = ref_ps
-            elif not open_ps:
-                ready[i] = True
+            st = classify(i)
+            if st == "blocked":
+                blocked[i] = cause[i]
+            elif st == "awaiting":
+                awaiting[i] = cause[i]
             else:
-                awaiting[i] = open_ps
+                ready[i] = True
         return dict(proven=proven, refuted=refuted, ready=ready, blocked=blocked, awaiting=awaiting)
 
     # ---------------- INDUCTION ----------------

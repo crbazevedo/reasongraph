@@ -298,8 +298,8 @@
   {
    "id": "F-BLOCK-ONEHOP",
    "kind": "finding",
-   "title": "Block propagation is one-hop, not transitive (grandchild of a refuted node = AWAITING)",
-   "statement": "Verified by reproduction: deduction() inspects only immediate prerequisites, so a refutation blocks children but not grandchildren. A real TMS relabels the whole reachable subgraph.",
+   "title": "Block propagation WAS one-hop, not transitive (grandchild of a refuted node = AWAITING)",
+   "statement": "Verified by reproduction: the original deduction() inspected only immediate prerequisites, so a refutation blocked children but not grandchildren. RESOLVED by T-BLOCK-TRANSITIVE \u2014 deduction now propagates BLOCKED across the reachable subgraph.",
    "status": "proven",
    "confidence": 0.5,
    "attrs": {
@@ -313,7 +313,8 @@
    },
    "evidence": [
     "reproduction 2026-06: P refuted, C blocked, GC awaiting",
-    "docs/RESEARCH-NOTES.md \u00a73"
+    "docs/RESEARCH-NOTES.md \u00a73",
+    "fixed by T-BLOCK-TRANSITIVE"
    ],
    "frontier": false
   },
@@ -344,7 +345,7 @@
    "title": "Status as a pure function of current evidence, recomputed each pass (recovery-by-construction)",
    "statement": "Never mutate-and-forget; recomputing makes deduction correctly non-monotonic \u2014 a refutation removes READY, overturning it restores READY. Keystone for the cluster.",
    "status": "proven",
-   "confidence": 0.9,
+   "confidence": 0.5,
    "attrs": {
     "payoff": 0.8,
     "effort": 0.5,
@@ -355,19 +356,16 @@
     "risk": 0.3
    },
    "evidence": [
-    "reasongraph/engine.py"
+    "reasongraph/engine.py: is_frontier() derived membership + recovery"
    ],
-   "frontier": true,
-   "notes": [
-    "shipped: is_frontier() derived membership + recovery; add_finding no longer mutates frontier"
-   ]
+   "frontier": false
   },
   {
    "id": "T-BLOCK-TRANSITIVE",
    "kind": "target",
    "title": "Block as a transitive closure over prerequisite edges (TMS-style invalidation)",
    "statement": "Fix F-BLOCK-ONEHOP: a descendant of a refuted node should be BLOCKED, not AWAITING.",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.75,
@@ -378,8 +376,10 @@
     "info_value": 0.6,
     "risk": 0.25
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py: transitive deduction() via memoized DFS"
+   ],
+   "frontier": false
   },
   {
    "id": "T-OR-JUSTIFICATIONS",
