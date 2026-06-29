@@ -177,9 +177,10 @@ node("T-SUPPORT-SEMANTICS", "reframe",
 # --- research-derived TARGETS: decision / evidence-under-uncertainty cluster ---
 node("T-SUBJECTIVE-LOGIC", "target",
      "Confidence via a subjective-logic opinion (Beta from evidence counts; capped by uncertainty mass)",
-     "open", attrs=A(payoff=.7, effort=.5, tract=.6, ready=.7, fit=.7, info=.55, risk=.3),
+     "proven", attrs=A(payoff=.7, effort=.5, tract=.6, ready=.7, fit=.7, info=.55, risk=.3),
      statement="'Confidence capped by evidence quality' IS subjective logic: conf = (r+a·W)/(r+s+W). "
-               "Cumulative fusion for independent evidence, averaging for correlated.")
+               "Cumulative fusion for independent evidence, averaging for correlated.",
+     evidence=["reasongraph/engine.py: opinion() + node_view/show; prior_weight/base_rate config"])
 node("T-NONCOMPENSATORY-GATE", "target",
      "Make readiness/risk an eligibility veto before scoring (ELECTRE-style, anti-compensation)",
      "open", attrs=A(payoff=.65, effort=.35, tract=.75, ready=.85, fit=.7, info=.5, risk=.25))

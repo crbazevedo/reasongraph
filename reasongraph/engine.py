@@ -162,6 +162,32 @@ class ReasonGraph:
                             "thin evidence — confidence capped until an enabling experiment lands"))
         return out
 
+    def opinion(self, node):
+        """A subjective-logic opinion derived from a node's ``evidence[]`` — confidence *capped by
+        evidence quality* in closed form (Jøsang). With r supporting and s refuting items, a prior
+        weight W and base rate a::
+
+            uncertainty u = W/(r+s+W);  belief b = r/(r+s+W);  disbelief d = s/(r+s+W)
+            confidence (projected probability) = b + a*u = (r + a*W)/(r+s+W)
+
+        No evidence ⇒ confidence == the base rate and uncertainty == 1: you cannot assert your way to
+        high confidence, it must be earned with evidence. Pure + deterministic. An evidence item is a
+        bare pointer (counts as supporting) or a dict whose ``polarity`` ("refute"/"challenge"/
+        "against") marks it refuting.
+        """
+        r = s = 0
+        for e in (node.get("evidence") or []):
+            if isinstance(e, dict) and str(e.get("polarity", "support")).lower().startswith(
+                    ("refut", "challeng", "against", "contra")):
+                s += 1
+            else:
+                r += 1
+        W, a = self.cfg.prior_weight, self.cfg.base_rate
+        denom = r + s + W
+        b, dd, u = r / denom, s / denom, W / denom
+        return dict(support=r, refute=s, belief=round(b, 3), disbelief=round(dd, 3),
+                    uncertainty=round(u, 3), confidence=round(b + a * u, 3))
+
     # ---------------- ABDUCTION ----------------
     def abduction(self, d):
         tasks = []
@@ -451,7 +477,7 @@ class ReasonGraph:
             id=nid, kind=n["kind"], title=n["title"], statement=n.get("statement", ""),
             status=n["status"], classification=cls, confidence=n.get("confidence"),
             frontier=self.is_frontier(n), score=score, attrs=n.get("attrs", {}),
-            blocked_by=self.blocking_causes(nid, d),
+            blocked_by=self.blocking_causes(nid, d), opinion=self.opinion(n),
             evidence=n.get("evidence", []), notes=n.get("notes", []),
             prerequisites=[ref(p) for p in self.pre[nid]],
             negatives=[ref(p) for p in self.neg[nid]],

@@ -57,6 +57,8 @@ class GraphConfig:
     blocked_payoff_min: float = 0.6             # abduction: only repair blocked targets at/above this
     high_info_min: float = 0.7                  # abduction: enumerate outcomes for nodes at/above this
     generalize_support_min: int = 2             # induction: generalize a finding with >= this many supports
+    prior_weight: float = 2.0                   # subjective-logic: non-informative prior weight W
+    base_rate: float = 0.5                      # subjective-logic: prior probability a (confidence with no evidence)
 
 
 def A(payoff=.5, effort=.5, tract=.5, ready=.5, fit=.5, info=.5, risk=.3, **extra):

@@ -691,7 +691,7 @@
    "kind": "target",
    "title": "Confidence via a subjective-logic opinion (Beta from evidence counts; capped by uncertainty mass)",
    "statement": "'Confidence capped by evidence quality' IS subjective logic: conf = (r+a\u00b7W)/(r+s+W). Cumulative fusion for independent evidence, averaging for correlated.",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.7,
@@ -702,8 +702,10 @@
     "info_value": 0.55,
     "risk": 0.3
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py: opinion() + node_view/show; prior_weight/base_rate config"
+   ],
+   "frontier": false
   },
   {
    "id": "T-NONCOMPENSATORY-GATE",
