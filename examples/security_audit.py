@@ -83,6 +83,17 @@ def build():
   edge("C-LOG", "P-PHISH", "enables")         # need logging to measure the simulation
   # --- negative edge: the compensating control is an alternative to the real fix ---
   edge("R-WAF-VPATCH", "R-SQLI", "tensions-with")
+
+  # --- a contested finding, resolved by the grounded extension (reinstatement) ---
+  # The auth-bypass claim is rebutted by a failed staging repro, which is itself rebutted by a
+  # production repro — so the original vuln is REINSTATED and its fix re-activated.
+  node("V-AUTH", "vuln", "Auth bypass via header injection", "open", attrs=A(payoff=.9))
+  node("F-NOREPRO", "vuln", "Could not reproduce the auth bypass in staging", "open", attrs=A(info=.4))
+  node("F-PRODREPRO", "vuln", "Reproduced the auth bypass under the production config", "open", attrs=A(info=.6))
+  rem("R-AUTH", "Validate/normalize the injected header on the auth path", payoff=.9, effort=.4, fit=.95, risk=.25)
+  edge("F-NOREPRO", "V-AUTH", "refutes")        # the failed repro attacks the claim...
+  edge("F-PRODREPRO", "F-NOREPRO", "refutes")   # ...but the prod repro attacks the failed repro -> reinstates V-AUTH
+  edge("V-AUTH", "R-AUTH", "enables")           # so the fix is needed (awaits V-AUTH confirmation)
   return g
 
 

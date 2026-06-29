@@ -149,9 +149,10 @@ node("T-OR-JUSTIFICATIONS", "target",
                "model a claim provable two ways.")
 node("T-GROUNDED-EXTENSION", "target",
      "Compute the grounded extension over the negative sub-graph (Dung reinstatement)",
-     "open", attrs=A(payoff=.75, effort=.65, tract=.5, ready=.5, fit=.92, info=.65, risk=.45),
-     statement="A refute-of-a-refuter should reinstate the original claim; the grounded extension is "
-               "unique, polynomial, skeptical — ideal for an auditable engine.")
+     "proven", attrs=A(payoff=.75, effort=.65, tract=.5, ready=.5, fit=.92, info=.65, risk=.45),
+     statement="A refute-of-a-refuter reinstates the original claim; the grounded extension is "
+               "unique, polynomial, skeptical — ideal for an auditable engine.",
+     evidence=["reasongraph/engine.py: grounded_extension() + deduction coupling; examples/security_audit.py"])
 node("T-BLOCK-EXPLAIN", "target",
      "A BLOCK carries its minimal set of refuted ancestors (nogood / causal frontier)",
      "proven", attrs=A(payoff=.6, effort=.3, tract=.85, ready=.9, fit=.88, info=.4, risk=.15),

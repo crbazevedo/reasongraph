@@ -67,6 +67,8 @@ def _format_node(v):
                  f"(support {op['support']}, refute {op['refute']}, uncertainty {op['uncertainty']})")
     if v.get("blocked_by"):
         L.append(f"  blocked by (root refutation): {', '.join(v['blocked_by'])}")
+    if v.get("grounded") and v["grounded"] != "in":
+        L.append(f"  argument status (grounded): {v['grounded']}")
     L += [f"  prerequisites: {refs(v['prerequisites'])}",
           f"  negatives:     {refs(v['negatives'])}",
           f"  feeds:         {refs(v['feeds'])}"]

@@ -308,6 +308,82 @@
    },
    "evidence": [],
    "frontier": true
+  },
+  {
+   "id": "V-AUTH",
+   "kind": "vuln",
+   "title": "Auth bypass via header injection",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.9,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "F-NOREPRO",
+   "kind": "vuln",
+   "title": "Could not reproduce the auth bypass in staging",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.4,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "F-PRODREPRO",
+   "kind": "vuln",
+   "title": "Reproduced the auth bypass under the production config",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.6,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "R-AUTH",
+   "kind": "remediation",
+   "title": "Validate/normalize the injected header on the auth path",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.9,
+    "effort": 0.4,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.95,
+    "info_value": 0.5,
+    "risk": 0.25
+   },
+   "evidence": [],
+   "frontier": true
   }
  ],
  "edges": [
@@ -369,6 +445,24 @@
    "from": "R-WAF-VPATCH",
    "to": "R-SQLI",
    "relation": "tensions-with",
+   "weight": 1.0
+  },
+  {
+   "from": "F-NOREPRO",
+   "to": "V-AUTH",
+   "relation": "refutes",
+   "weight": 1.0
+  },
+  {
+   "from": "F-PRODREPRO",
+   "to": "F-NOREPRO",
+   "relation": "refutes",
+   "weight": 1.0
+  },
+  {
+   "from": "V-AUTH",
+   "to": "R-AUTH",
+   "relation": "enables",
    "weight": 1.0
   }
  ]
