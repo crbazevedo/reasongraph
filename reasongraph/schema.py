@@ -14,6 +14,10 @@ The four inference modes are domain-invariant.
 from __future__ import annotations
 from dataclasses import dataclass, field
 
+# The on-disk graph schema. Bumped only on a BREAKING change to the graph format; all additive
+# feature work keeps this stable so existing graphs keep loading. `migrate` upgrades older graphs.
+SCHEMA_VERSION = "reasongraph/v1"
+
 # ---- default vocabularies (override per domain via GraphConfig) ----
 KINDS = ("contribution", "finding", "target", "experiment", "hypothesis", "reframe")
 STATUSES = ("open", "in-progress", "proven", "empirical-supported", "empirical-thin",
@@ -80,6 +84,6 @@ def make_edge(frm, to, relation, weight=1.0):
 def new_graph(thesis="", **meta):
     """An empty graph with a meta block. `thesis` is shown in the report header and is the
     natural place to encode 'what this programme is currently about' (re-pointable via attrs)."""
-    m = dict(schema="reasongraph/v1", thesis=thesis)
+    m = dict(schema=SCHEMA_VERSION, thesis=thesis)
     m.update(meta)
     return dict(meta=m, nodes=[], edges=[])

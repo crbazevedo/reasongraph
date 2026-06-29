@@ -348,6 +348,36 @@ def _make_security_cfg():
                        refuted=frozenset({"false-positive", "risk-accepted"}))
 
 
+def test_legacy_graph_loads_and_runs_without_optional_keys():
+    """Backward compatibility: a v1 graph missing optional node keys (attrs/evidence/confidence)
+    still loads and runs every mode — the engine reads optional fields defensively."""
+    import json
+    g = {"meta": {"schema": "reasongraph/v1", "thesis": "legacy"},
+         "nodes": [{"id": "A", "kind": "target", "title": "a", "status": "open", "frontier": True},
+                   {"id": "B", "kind": "contribution", "title": "b", "status": "proven"}],
+         "edges": [{"from": "B", "to": "A", "relation": "enables"}]}
+    rg = ReasonGraph(g)
+    d = rg.deduction()
+    assert "A" in d["ready"]                              # B proven -> A ready, despite A lacking attrs
+    assert rg.decision(d)[0][1] == "A"                    # decision tolerates missing attrs (defaults)
+    assert [i for i in rg.validate() if i["severity"] == "error"] == []
+    json.dumps(rg.pass_data())                            # structured views work on a legacy graph too
+
+
+def test_migrate_backfills_and_is_idempotent():
+    g = {"meta": {"thesis": "no schema"},                 # missing meta.schema + node attrs/evidence
+         "nodes": [{"id": "A", "kind": "target", "title": "a", "status": "open", "frontier": True}],
+         "edges": []}
+    rg = ReasonGraph(g)
+    changes = rg.migrate()
+    assert any("schema" in c for c in changes)
+    assert rg.N["A"]["attrs"] and rg.N["A"]["evidence"] == []   # backfilled
+    assert rg.g["meta"]["schema"] == "reasongraph/v1"
+    assert rg.migrate() == []                             # idempotent: a second run is a no-op
+    # migration is non-destructive: the original claim is untouched
+    assert rg.N["A"]["title"] == "a" and rg.N["A"]["status"] == "open"
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")

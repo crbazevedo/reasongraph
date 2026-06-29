@@ -5,8 +5,9 @@ deduction, induction, abduction, decision — that decide *what to tackle next* 
 evidence (positive or negative) arrives*. ~150 lines of stdlib; an LLM enters only the two
 generative modes. See docs/METHODOLOGY.md.
 """
-from .schema import GraphConfig, A, make_node, make_edge, new_graph
+from .schema import GraphConfig, A, make_node, make_edge, new_graph, SCHEMA_VERSION
 from .engine import ReasonGraph, load, save
 
-__all__ = ["ReasonGraph", "GraphConfig", "A", "make_node", "make_edge", "new_graph", "load", "save"]
-__version__ = "0.1.0"
+__all__ = ["ReasonGraph", "GraphConfig", "A", "make_node", "make_edge", "new_graph", "load", "save",
+           "SCHEMA_VERSION"]
+__version__ = "0.2.0"

@@ -30,6 +30,10 @@ where the steps depend on each other and the priorities keep changing as results
 pip install -e .          # stdlib only; nothing else is pulled in
 ```
 
+Already using reasongraph? `pip install --upgrade reasongraph`, then see
+[CHANGELOG.md](CHANGELOG.md) and the [upgrade guide](docs/UPGRADING.md) — existing graphs keep
+working (the schema is versioned and backward-compatible; `reasongraph migrate` upgrades older ones).
+
 ## Quickstart
 
 ```bash

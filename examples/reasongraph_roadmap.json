@@ -344,6 +344,50 @@
    "frontier": false
   },
   {
+   "id": "T-ADOPTER-KIT",
+   "kind": "target",
+   "title": "Adopter upgrade kit: CHANGELOG + SemVer + version/migrate + UPGRADING guide",
+   "statement": "Operator-requested: external adopters need change logs, an install-update path, a way to learn + apply new features to a live project, and graph backward-compatibility.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.7,
+    "effort": 0.4,
+    "tractability": 0.8,
+    "readiness": 0.9,
+    "strategic_fit": 0.85,
+    "info_value": 0.4,
+    "risk": 0.15
+   },
+   "evidence": [
+    "CHANGELOG.md",
+    "docs/UPGRADING.md",
+    "reasongraph/cli.py: version/migrate + --config"
+   ],
+   "frontier": false
+  },
+  {
+   "id": "F-GRAPH-BACKWARD-COMPAT",
+   "kind": "finding",
+   "title": "Existing reasongraph/v1 graphs load and run unchanged \u2014 all 0.2.0 changes are additive",
+   "statement": "Schema stays v1; the engine reads optional node fields defensively; migrate is idempotent + non-destructive. Verified by a legacy-graph load test + a migrate test.",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.6,
+    "risk": 0.3
+   },
+   "evidence": [
+    "tests: legacy graph loads/runs; migrate backfills + idempotent"
+   ],
+   "frontier": false
+  },
+  {
    "id": "F-PORT-CONFIG-ONLY",
    "kind": "finding",
    "title": "Ported to a second domain (security audit) with ONLY GraphConfig changes \u2014 no engine edits",
@@ -882,6 +926,18 @@
   {
    "from": "F-CLI-CONFIG-FIXED",
    "to": "T-CLI-CONFIG",
+   "relation": "supports",
+   "weight": 1.0
+  },
+  {
+   "from": "C-CLI",
+   "to": "T-ADOPTER-KIT",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "F-GRAPH-BACKWARD-COMPAT",
+   "to": "T-ADOPTER-KIT",
    "relation": "supports",
    "weight": 1.0
   },
