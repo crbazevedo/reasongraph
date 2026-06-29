@@ -1,7 +1,7 @@
 {
  "meta": {
   "schema": "reasongraph/v1",
-  "thesis": "a lean, public, stdlib-only governed outer-loop engine people can adopt"
+  "thesis": "trustworthy auditable substrate for the agentic outer loop \u2014 pillar 1: sound deductive core (trust is load-bearing); pillar 2: defensible decision layer; pillar 3: lean & adoptable"
  },
  "nodes": [
   {
@@ -212,7 +212,7 @@
     "effort": 0.55,
     "tractability": 0.55,
     "readiness": 0.6,
-    "strategic_fit": 0.85,
+    "strategic_fit": 0.7,
     "info_value": 0.6,
     "risk": 0.35
    },
@@ -319,6 +319,27 @@
    "frontier": false
   },
   {
+   "id": "F-FIT-WEAK-LEVER",
+   "kind": "finding",
+   "title": "strategic_fit (weight .12) is too weak to express thesis priority against unlock-centrality (.20)",
+   "statement": "Dogfood 2026-06: after honestly raising fit on the pillar-1 correctness cluster, the engine still ranked the high-centrality T-ABDUCE top. Re-pointing the programme via strategic_fit alone cannot override a hub's unlock-centrality \u2014 motivates revisiting the decision weights (T-DECISION-ECONOMY).",
+   "status": "proven",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.7,
+    "risk": 0.3
+   },
+   "evidence": [
+    "dogfood pass: fit-bumped cluster, T-ABDUCE still #1 by centrality"
+   ],
+   "frontier": false
+  },
+  {
    "id": "F-FIREWALL-GROUNDED",
    "kind": "finding",
    "title": "The LLM-out-of-deduction/decision firewall is theory-aligned (Peirce generation/justification)",
@@ -393,7 +414,7 @@
     "effort": 0.6,
     "tractability": 0.55,
     "readiness": 0.5,
-    "strategic_fit": 0.65,
+    "strategic_fit": 0.9,
     "info_value": 0.55,
     "risk": 0.4
    },
@@ -412,7 +433,7 @@
     "effort": 0.65,
     "tractability": 0.5,
     "readiness": 0.5,
-    "strategic_fit": 0.6,
+    "strategic_fit": 0.92,
     "info_value": 0.65,
     "risk": 0.45
    },
@@ -424,19 +445,21 @@
    "kind": "target",
    "title": "A BLOCK carries its minimal set of refuted ancestors (nogood / causal frontier)",
    "statement": "",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.6,
     "effort": 0.3,
     "tractability": 0.85,
     "readiness": 0.9,
-    "strategic_fit": 0.7,
+    "strategic_fit": 0.88,
     "info_value": 0.4,
     "risk": 0.15
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py: blocking_causes() + node_view.blocked_by + report"
+   ],
+   "frontier": false
   },
   {
    "id": "T-DECISION-ECONOMY",
@@ -824,6 +847,12 @@
   },
   {
    "from": "F-FIREWALL-GROUNDED",
+   "to": "T-DECISION-ECONOMY",
+   "relation": "supports",
+   "weight": 1.0
+  },
+  {
+   "from": "F-FIT-WEAK-LEVER",
    "to": "T-DECISION-ECONOMY",
    "relation": "supports",
    "weight": 1.0

@@ -66,6 +66,19 @@ def test_transitive_block_recovers_when_root_is_overturned():
     assert "GC" in rg.deduction()["ready"]
 
 
+def test_blocking_causes_traces_root_refutation():
+    rg = ReasonGraph(_chain())             # P (refuted) -> C -> GC
+    assert rg.blocking_causes("C") == ["P"]
+    assert rg.blocking_causes("GC") == ["P"]     # traced through the blocked intermediate C
+    assert rg.blocking_causes("P") == []         # P itself is refuted, not blocked
+
+
+def test_node_view_reports_root_blocked_by():
+    v = ReasonGraph(_chain()).node_view("GC")
+    assert v["classification"] == "blocked"
+    assert v["blocked_by"] == ["P"]              # names the root cause, not the immediate parent C
+
+
 def test_decision_is_deterministic_and_orders_ready_first():
     rg = ReasonGraph(_graph())
     r1 = rg.decision(rg.deduction())
