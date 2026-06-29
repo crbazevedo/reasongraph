@@ -93,14 +93,15 @@ node("F-PORT-CONFIG-ONLY", "finding",
                "earned, not asserted.",
      evidence=["examples/security_audit.py runs a clean pass under a security GraphConfig"])
 node("F-CLI-CONFIG-FIXED", "finding",
-     "CLI commands hardcode the default GraphConfig — a ported graph can't be passed/validated via CLI",
+     "CLI commands hardcoded the default GraphConfig — a ported graph couldn't be passed/validated via CLI",
      "proven", attrs=A(info=.65),
      statement="Discovered building T-EXAMPLE2: `reasongraph validate/pass` on security_audit.json "
-               "uses the default ladder, so custom statuses (confirmed/false-positive) misclassify "
-               "and emit spurious warnings. The Python API takes a config; the CLI has no way to.")
+               "used the default ladder, so custom statuses (confirmed/false-positive) misclassified "
+               "and emitted spurious warnings. RESOLVED by T-CLI-CONFIG (a shared --config option).")
 node("T-CLI-CONFIG", "target",
      "Let the CLI load a domain GraphConfig (e.g. --config module:NAME) so ported graphs work end-to-end",
-     "open", attrs=A(payoff=.65, effort=.4, tract=.75, ready=.85, fit=.8, info=.45, risk=.2))
+     "proven", attrs=A(payoff=.65, effort=.4, tract=.75, ready=.85, fit=.8, info=.45, risk=.2),
+     evidence=["reasongraph/cli.py: shared --config MODULE:NAME / PATH.py:NAME on every command"])
 node("F-TOP-ROBUST-TAIL-FRAGILE", "finding",
      "The top recommendation is weight-robust; only the mid-frontier ordering is fragile",
      "proven", attrs=A(info=.6),

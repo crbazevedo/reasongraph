@@ -306,6 +306,48 @@ def test_custom_config_ports_status_ladder_without_engine_changes():
     assert "R" in [i for _, i, *_ in rg.decision(d)]
 
 
+def test_cli_load_config_from_file_path():
+    from reasongraph.cli import _load_config
+    sec = os.path.join(os.path.dirname(__file__), "..", "examples", "security_audit.py")
+    cfg = _load_config(sec + ":SEC")                    # loads side-effect-free (build() guarded)
+    assert "confirmed" in cfg.proven and "false-positive" in cfg.refuted
+    assert _load_config(None) is None                   # no --config -> default engine config
+
+
+def test_cli_load_config_rejects_bad_spec():
+    from reasongraph.cli import _load_config
+    for bad in ("nocolon", ":NAME", "module:"):
+        try:
+            _load_config(bad)
+            assert False, f"expected ValueError for {bad!r}"
+        except ValueError:
+            pass
+
+
+def test_cli_pass_honors_config_end_to_end():
+    """A ported graph passed via the CLI with --config classifies under its own ladder."""
+    from reasongraph.engine import save
+    cfg = _make_security_cfg()
+    g = new_graph(thesis="cli-config e2e")
+    g["nodes"] += [
+        make_node("V", "vuln", "confirmed", "confirmed"),
+        make_node("R", "remediation", "fix", "open", attrs=A(payoff=.9), frontier=True),
+    ]
+    g["edges"] += [make_edge("V", "R", "enables")]
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        save(g, fh.name)
+        path = fh.name
+    rg = ReasonGraph.from_file(path, cfg)
+    assert "R" in rg.deduction()["ready"]               # confirmed prereq -> ready under the ported cfg
+    os.remove(path)
+
+
+def _make_security_cfg():
+    return GraphConfig(proven=frozenset({"confirmed", "deployed"}),
+                       refuted=frozenset({"false-positive", "risk-accepted"}))
+
+
 def test_unknown_node_add_finding_raises():
     try:
         ReasonGraph(_graph()).add_finding("NOPE", "proven")

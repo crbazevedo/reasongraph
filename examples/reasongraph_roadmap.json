@@ -367,8 +367,8 @@
   {
    "id": "F-CLI-CONFIG-FIXED",
    "kind": "finding",
-   "title": "CLI commands hardcode the default GraphConfig \u2014 a ported graph can't be passed/validated via CLI",
-   "statement": "Discovered building T-EXAMPLE2: `reasongraph validate/pass` on security_audit.json uses the default ladder, so custom statuses (confirmed/false-positive) misclassify and emit spurious warnings. The Python API takes a config; the CLI has no way to.",
+   "title": "CLI commands hardcoded the default GraphConfig \u2014 a ported graph couldn't be passed/validated via CLI",
+   "statement": "Discovered building T-EXAMPLE2: `reasongraph validate/pass` on security_audit.json used the default ladder, so custom statuses (confirmed/false-positive) misclassified and emitted spurious warnings. RESOLVED by T-CLI-CONFIG (a shared --config option).",
    "status": "proven",
    "confidence": 0.5,
    "attrs": {
@@ -388,7 +388,7 @@
    "kind": "target",
    "title": "Let the CLI load a domain GraphConfig (e.g. --config module:NAME) so ported graphs work end-to-end",
    "statement": "",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.65,
@@ -399,8 +399,10 @@
     "info_value": 0.45,
     "risk": 0.2
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/cli.py: shared --config MODULE:NAME / PATH.py:NAME on every command"
+   ],
+   "frontier": false
   },
   {
    "id": "F-TOP-ROBUST-TAIL-FRAGILE",

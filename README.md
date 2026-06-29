@@ -115,7 +115,12 @@ weights** (your priorities), and the **kind** names (your cast). Full guide:
 
 [`examples/security_audit.py`](examples/security_audit.py) proves this: it steers an authorized
 security audit (vulns *confirmed* or dismissed as *false-positive*, remediations ranked by
-risk-reduction) using the **same engine** — only `GraphConfig` and the graph content change.
+risk-reduction) using the **same engine** — only `GraphConfig` and the graph content change. Every
+CLI command takes `--config MODULE:NAME` (or `PATH.py:NAME`) so a ported graph works end-to-end:
+
+```bash
+reasongraph pass examples/security_audit.json --config examples/security_audit.py:SEC
+```
 
 ## License
 
