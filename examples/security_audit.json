@@ -1,0 +1,375 @@
+{
+ "meta": {
+  "schema": "reasongraph/v1",
+  "thesis": "authorized security audit \u2014 reduce real risk to the crown-jewel data",
+  "engagement": "ACME Corp external + authenticated app test (scoped, authorized)"
+ },
+ "nodes": [
+  {
+   "id": "C-WAF",
+   "kind": "control",
+   "title": "Edge WAF deployed",
+   "statement": "",
+   "status": "deployed",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.4,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-MFA",
+   "kind": "control",
+   "title": "MFA enforced on admin accounts",
+   "statement": "",
+   "status": "deployed",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.4,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "C-LOG",
+   "kind": "control",
+   "title": "Centralized audit logging",
+   "statement": "",
+   "status": "deployed",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.3,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "V-SQLI",
+   "kind": "vuln",
+   "title": "SQL injection in legacy reporting endpoint",
+   "statement": "",
+   "status": "confirmed",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.9,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "V-IDOR",
+   "kind": "vuln",
+   "title": "IDOR on invoice download",
+   "statement": "",
+   "status": "confirmed",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.8,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "V-XSS",
+   "kind": "vuln",
+   "title": "Reflected XSS in search",
+   "statement": "",
+   "status": "triaging",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "V-RCE",
+   "kind": "vuln",
+   "title": "Unauth RCE in EOL legacy appliance",
+   "statement": "",
+   "status": "confirmed",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.95,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "V-REDIRECT",
+   "kind": "vuln",
+   "title": "Open redirect on login",
+   "statement": "Flagged by the scanner; manual review shows the target is allow-listed \u2014 not exploitable.",
+   "status": "false-positive",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.3,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "F-VENDOR-EOL",
+   "kind": "vuln",
+   "title": "Vendor patch for the appliance is unavailable (end-of-life)",
+   "statement": "The obvious fix (apply the vendor patch) is dead \u2014 the appliance is EOL, no patch exists.",
+   "status": "risk-accepted",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.5,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.6,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": false
+  },
+  {
+   "id": "R-SQLI",
+   "kind": "remediation",
+   "title": "Parameterize the reporting queries",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.9,
+    "effort": 0.25,
+    "tractability": 0.5,
+    "readiness": 0.9,
+    "strategic_fit": 0.9,
+    "info_value": 0.5,
+    "risk": 0.15
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "R-IDOR",
+   "kind": "remediation",
+   "title": "Add object-level authorization to invoice download",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.8,
+    "effort": 0.35,
+    "tractability": 0.5,
+    "readiness": 0.85,
+    "strategic_fit": 0.85,
+    "info_value": 0.5,
+    "risk": 0.2
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "R-XSS",
+   "kind": "remediation",
+   "title": "Output-encode search results",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.3,
+    "tractability": 0.5,
+    "readiness": 0.6,
+    "strategic_fit": 0.7,
+    "info_value": 0.5,
+    "risk": 0.15
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "R-REDIRECT",
+   "kind": "remediation",
+   "title": "Allow-list redirect targets",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.3,
+    "effort": 0.2,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.4,
+    "info_value": 0.5,
+    "risk": 0.1
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "R-RCE-PATCH",
+   "kind": "remediation",
+   "title": "Apply the vendor patch to the legacy appliance",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.95,
+    "effort": 0.3,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.95,
+    "info_value": 0.5,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "R-WAF-VPATCH",
+   "kind": "remediation",
+   "title": "Virtual-patch the SQLi at the WAF (compensating control)",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.6,
+    "effort": 0.2,
+    "tractability": 0.5,
+    "readiness": 0.9,
+    "strategic_fit": 0.7,
+    "info_value": 0.5,
+    "risk": 0.2
+   },
+   "evidence": [],
+   "frontier": true
+  },
+  {
+   "id": "P-PHISH",
+   "kind": "probe",
+   "title": "Phishing simulation to size human risk",
+   "statement": "",
+   "status": "open",
+   "confidence": 0.5,
+   "attrs": {
+    "payoff": 0.5,
+    "effort": 0.4,
+    "tractability": 0.5,
+    "readiness": 0.5,
+    "strategic_fit": 0.5,
+    "info_value": 0.85,
+    "risk": 0.3
+   },
+   "evidence": [],
+   "frontier": true
+  }
+ ],
+ "edges": [
+  {
+   "from": "V-SQLI",
+   "to": "R-SQLI",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "V-IDOR",
+   "to": "R-IDOR",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-MFA",
+   "to": "R-IDOR",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "V-XSS",
+   "to": "R-XSS",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "V-REDIRECT",
+   "to": "R-REDIRECT",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "V-RCE",
+   "to": "R-RCE-PATCH",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "F-VENDOR-EOL",
+   "to": "R-RCE-PATCH",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-WAF",
+   "to": "R-WAF-VPATCH",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "C-LOG",
+   "to": "P-PHISH",
+   "relation": "enables",
+   "weight": 1.0
+  },
+  {
+   "from": "R-WAF-VPATCH",
+   "to": "R-SQLI",
+   "relation": "tensions-with",
+   "weight": 1.0
+  }
+ ]
+}

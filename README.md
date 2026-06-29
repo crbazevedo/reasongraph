@@ -113,6 +113,10 @@ three things in `GraphConfig`: the **status ladder** (your evidence stages), the
 weights** (your priorities), and the **kind** names (your cast). Full guide:
 [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
+[`examples/security_audit.py`](examples/security_audit.py) proves this: it steers an authorized
+security audit (vulns *confirmed* or dismissed as *false-positive*, remediations ranked by
+risk-reduction) using the **same engine** — only `GraphConfig` and the graph content change.
+
 ## License
 
 MIT.
