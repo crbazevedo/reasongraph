@@ -655,7 +655,7 @@
    "kind": "target",
    "title": "Tag evidence enumerative vs eliminative + PROV source/quality; generalize on eliminative breadth",
    "statement": "",
-   "status": "open",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.6,
@@ -666,8 +666,13 @@
     "info_value": 0.5,
     "risk": 0.2
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    {
+     "source": "reasongraph/engine.py: _ev_facets/evidence_profile + weighted opinion + Goodman-aware induction",
+     "type": "eliminative"
+    }
+   ],
+   "frontier": false
   },
   {
    "id": "T-SUPPORT-SEMANTICS",

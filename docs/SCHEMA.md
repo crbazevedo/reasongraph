@@ -32,7 +32,7 @@ not a rewrite.
 | `status` | `open · in-progress · proven · empirical-supported · empirical-thin · refuted · conjectural · deprecated`. The engine only cares about two sets: **PROVEN** = {proven, empirical-supported} and **REFUTED** = {refuted, deprecated}. |
 | `confidence` | [0,1]; set by induction, capped by evidence quality |
 | `attrs` | the decision inputs, all [0,1]: `payoff`, `effort`, `tractability`, `readiness`, `strategic_fit` (thesis alignment), `info_value` (decision-useful either way), `risk`. Extra keys (e.g. `venue`, tags) pass through untouched. |
-| `evidence` | pointers *with polarity* — a path to a proof/dataset, or a provenance string. Count + independence drive induction. |
+| `evidence` | a list of items, each a bare pointer string (a path/provenance, treated as supporting) **or** a dict `{ "source": "...", "polarity": "support\|refute", "type": "enumerative\|eliminative", "independent": true, "weight": 1.0 }` (all optional). Drives `opinion()` (subjective-logic confidence, weighted) and induction (eliminative/independent ⇒ strong generalization; enumerative-only ⇒ Goodman caution). |
 | `frontier` | authored *intent* — "this is an actionable item" (auto-true for open targets/experiments). *Effective* frontier membership is **derived** each pass (`is_frontier` = this flag AND status not proven/refuted), so a node leaves the frontier when resolved and returns if a finding is later overturned — recovery, not a one-way stamp. |
 
 ## edge
