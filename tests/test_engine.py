@@ -451,6 +451,45 @@ def test_opinion_refuting_evidence_pulls_below_base_rate():
         rg.opinion(make_node("Z", "finding", "z", "open"))    # deterministic
 
 
+def test_evidence_weight_raises_confidence_more():
+    rg = ReasonGraph(_graph())
+    plain = rg.opinion(make_node("X", "finding", "x", "open", evidence=["a"]))
+    heavy = rg.opinion(make_node("Y", "finding", "y", "open",
+                                 evidence=[{"source": "a", "weight": 3}]))
+    assert heavy["confidence"] > plain["confidence"]      # a heavier item counts for more
+    assert heavy["support"] == 3.0
+
+
+def test_evidence_profile_counts_facets():
+    n = make_node("X", "finding", "x", "open", evidence=[
+        {"source": "ruled out rival H2", "type": "eliminative"},
+        {"source": "external replication", "independent": True},
+        "a plain enumerative instance",
+        {"source": "failed repro", "polarity": "refute"},
+    ])
+    p = ReasonGraph(_graph()).evidence_profile(n)
+    assert p == dict(support=3, refute=1, eliminative=1, enumerative=0, independent=1)
+
+
+def test_induction_prefers_eliminative_over_enumerative():
+    g = new_graph(thesis="goodman")
+    g["nodes"] += [
+        make_node("F-ENUM", "finding", "enumerative only", "proven",
+                  evidence=["instance 1", "instance 2", "instance 3"]),
+        make_node("F-ELIM", "finding", "rivals ruled out", "proven",
+                  evidence=[{"source": "ruled out H2", "type": "eliminative"}]),
+    ]
+    msgs = {i: m for k, i, m in ReasonGraph(g).induction(ReasonGraph(g).deduction())}
+    assert "enumerative-only" in msgs["F-ENUM"] and "Goodman" in msgs["F-ENUM"]   # weak, cautioned
+    assert "eliminative/independent" in msgs["F-ELIM"]                            # strong
+
+
+def test_string_evidence_is_backward_compatible():
+    rg = ReasonGraph(_graph())
+    op = rg.opinion(make_node("X", "finding", "x", "open", evidence=["p", "q"]))
+    assert op["support"] == 2.0 and op["refute"] == 0.0     # legacy string evidence = supporting
+
+
 def test_node_view_includes_opinion():
     v = ReasonGraph(_graph()).node_view("F-BAD")
     assert "opinion" in v and "confidence" in v["opinion"]

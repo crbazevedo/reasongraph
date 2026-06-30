@@ -170,7 +170,9 @@ node("T-ABDUCE-COVERAGE", "target",
      "open", attrs=A(payoff=.6, effort=.55, tract=.45, ready=.5, fit=.6, info=.6, risk=.35))
 node("T-EVIDENCE-TYPED", "target",
      "Tag evidence enumerative vs eliminative + PROV source/quality; generalize on eliminative breadth",
-     "open", attrs=A(payoff=.6, effort=.4, tract=.7, ready=.8, fit=.65, info=.5, risk=.2))
+     "proven", attrs=A(payoff=.6, effort=.4, tract=.7, ready=.8, fit=.65, info=.5, risk=.2),
+     evidence=[{"source": "reasongraph/engine.py: _ev_facets/evidence_profile + weighted opinion + "
+                          "Goodman-aware induction", "type": "eliminative"}])
 node("T-SUPPORT-SEMANTICS", "reframe",
      "Specify the BAF reading of `supports` and split negatives into undercut vs rebut",
      "open", attrs=A(payoff=.55, effort=.45, tract=.6, ready=.6, fit=.6, info=.45, risk=.3))

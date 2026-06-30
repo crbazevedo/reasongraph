@@ -9,6 +9,13 @@ its own upgrade path (`reasongraph migrate`). See [docs/UPGRADING.md](docs/UPGRA
 ## [Unreleased]
 
 ### Added
+- **Typed evidence** — an `evidence[]` item may now be a dict with `polarity` (support/refute),
+  `type` (`enumerative`/`eliminative`), `independent`, `weight`, and a `source`/`ptr` pointer (a bare
+  string stays valid = supporting, enumerative, weight 1). `opinion()` sums each item's weight, so
+  eliminative/high-quality evidence can count for more; `evidence_profile(node)` reports the facet
+  counts (surfaced in `show` / `node_view`). Induction now follows Goodman: it flags a generalization
+  as *strong* on eliminative/independent support and *cautions* enumerative-only support. Pure,
+  deterministic, backward compatible.
 - **Grounded extension (Dung argumentation) with reinstatement** — `ReasonGraph.grounded_extension()`
   labels each node `in` / `out` / `undec` over the `refutes` attack edges (new
   `GraphConfig.attack_rel`). *Refuting a refuter reinstates the original claim.* Deduction consumes

@@ -179,16 +179,54 @@ class ReasonGraph:
         walk(i)
         return sorted(roots)
 
+    # ---------------- evidence typing (single source for opinion + induction + views) ----------------
+    def _ev_facets(self, e):
+        """Normalize one evidence item to its facets. An item is a bare pointer (supporting,
+        enumerative, weight 1) or a dict with optional ``polarity`` (support/refute), ``type``
+        (enumerative/eliminative), ``independent``, ``weight``, and a ``source``/``ptr`` pointer.
+        Independence is also inferred from the pointer text via ``independent_hints``."""
+        if isinstance(e, dict):
+            pol = str(e.get("polarity", "support")).lower()
+            typ = str(e.get("type", e.get("kind", ""))).lower()
+            ptr = str(e.get("source") or e.get("ptr") or e.get("id") or "")
+            indep = bool(e.get("independent")) or any(h in (ptr + " " + typ).lower()
+                                                      for h in self.cfg.independent_hints)
+            try:
+                w = float(e.get("weight", 1.0))
+            except (TypeError, ValueError):
+                w = 1.0
+            return dict(polarity=("refute" if pol.startswith(("refut", "challeng", "against", "contra"))
+                                  else "support"),
+                        eliminative=typ.startswith("elim"), enumerative=typ.startswith("enum"),
+                        independent=indep, weight=w, ptr=ptr)
+        s = str(e)
+        return dict(polarity="support", eliminative=False, enumerative=False,
+                    independent=any(h in s.lower() for h in self.cfg.independent_hints),
+                    weight=1.0, ptr=s)
+
+    def evidence_profile(self, node):
+        """Counts of a node's evidence by facet — for induction and the node view. Pure."""
+        fs = [self._ev_facets(e) for e in (node.get("evidence") or [])]
+        sup = [f for f in fs if f["polarity"] == "support"]
+        return dict(support=len(sup), refute=len(fs) - len(sup),
+                    eliminative=sum(1 for f in sup if f["eliminative"]),
+                    enumerative=sum(1 for f in sup if f["enumerative"]),
+                    independent=sum(1 for f in sup if f["independent"]))
+
     # ---------------- INDUCTION ----------------
     def induction(self, d):
         out = []
         for n in self.g["nodes"]:
-            ev = n.get("evidence", [])
             if n["status"] in self.cfg.proven and n["kind"] == "finding":
-                indep = any(any(h in str(e).lower() for h in self.cfg.independent_hints) for e in ev)
-                if len(ev) >= self.cfg.generalize_support_min or indep:
+                p = self.evidence_profile(n)
+                strong = p["eliminative"] >= 1 or p["independent"] >= 1   # rivals ruled out / external
+                if strong:
                     out.append(("generalize?", n["id"],
-                                "multi/independent support — propose a generalized claim node"))
+                                "eliminative/independent support — propose a generalized claim node"))
+                elif p["support"] >= self.cfg.generalize_support_min:
+                    out.append(("generalize?", n["id"],
+                                "enumerative-only support (Goodman): weak — seek a rival-eliminating "
+                                "test before generalizing"))
             if n["status"] in self.cfg.thin:
                 out.append(("strengthen", n["id"],
                             "thin evidence — confidence capped until an enabling experiment lands"))
@@ -203,21 +241,21 @@ class ReasonGraph:
             confidence (projected probability) = b + a*u = (r + a*W)/(r+s+W)
 
         No evidence ⇒ confidence == the base rate and uncertainty == 1: you cannot assert your way to
-        high confidence, it must be earned with evidence. Pure + deterministic. An evidence item is a
-        bare pointer (counts as supporting) or a dict whose ``polarity`` ("refute"/"challenge"/
-        "against") marks it refuting.
+        high confidence, it must be earned with evidence. Pure + deterministic. Each evidence item
+        contributes its ``weight`` (default 1) to the supporting or refuting tally via ``_ev_facets``
+        — so higher-quality / eliminative evidence can be weighted up.
         """
-        r = s = 0
+        r = s = 0.0
         for e in (node.get("evidence") or []):
-            if isinstance(e, dict) and str(e.get("polarity", "support")).lower().startswith(
-                    ("refut", "challeng", "against", "contra")):
-                s += 1
+            f = self._ev_facets(e)
+            if f["polarity"] == "refute":
+                s += f["weight"]
             else:
-                r += 1
+                r += f["weight"]
         W, a = self.cfg.prior_weight, self.cfg.base_rate
         denom = r + s + W
         b, dd, u = r / denom, s / denom, W / denom
-        return dict(support=r, refute=s, belief=round(b, 3), disbelief=round(dd, 3),
+        return dict(support=round(r, 3), refute=round(s, 3), belief=round(b, 3), disbelief=round(dd, 3),
                     uncertainty=round(u, 3), confidence=round(b + a * u, 3))
 
     # ---------------- ABDUCTION ----------------
@@ -522,6 +560,7 @@ class ReasonGraph:
             status=n["status"], classification=cls, confidence=n.get("confidence"),
             frontier=self.is_frontier(n), score=score, attrs=n.get("attrs", {}),
             blocked_by=self.blocking_causes(nid, d), opinion=self.opinion(n),
+            evidence_profile=self.evidence_profile(n),
             grounded=self.grounded_extension().get(nid),
             evidence=n.get("evidence", []), notes=n.get("notes", []),
             prerequisites=[ref(p) for p in self.pre[nid]],

@@ -65,6 +65,10 @@ def _format_node(v):
     if op:
         L.append(f"  evidence opinion: confidence≈{op['confidence']} "
                  f"(support {op['support']}, refute {op['refute']}, uncertainty {op['uncertainty']})")
+    ep = v.get("evidence_profile")
+    if ep and (ep["eliminative"] or ep["independent"] or ep["enumerative"]):
+        L.append(f"  evidence types: eliminative {ep['eliminative']}, "
+                 f"independent {ep['independent']}, enumerative {ep['enumerative']}")
     if v.get("blocked_by"):
         L.append(f"  blocked by (root refutation): {', '.join(v['blocked_by'])}")
     if v.get("grounded") and v["grounded"] != "in":
