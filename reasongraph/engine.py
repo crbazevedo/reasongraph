@@ -47,6 +47,7 @@ class ReasonGraph:
         pre = {i: [] for i in N}   # prerequisites feeding a node
         out = {i: [] for i in N}   # what a node feeds
         neg = {i: [] for i in N}   # refutes/tensions toward a node
+        att = {i: [] for i in N}   # attackers (refutes) toward a node — for the grounded extension
         for e in self.g["edges"]:
             f, t, r = e["from"], e["to"], e["relation"]
             if f not in N or t not in N:
@@ -55,9 +56,11 @@ class ReasonGraph:
                 pre[t].append(f); out[f].append(t)
             elif r in self.cfg.neg_rel:
                 neg[t].append(f); out[f].append(t)
+                if r in self.cfg.attack_rel:
+                    att[t].append(f)
             else:
                 out[f].append(t)
-        self.N, self.pre, self.out, self.neg = N, pre, out, neg
+        self.N, self.pre, self.out, self.neg, self.att = N, pre, out, neg, att
 
     def is_frontier(self, n):
         """Effective frontier membership — a PURE function of authored intent + current status.
@@ -70,6 +73,29 @@ class ReasonGraph:
         """
         return bool(n.get("frontier")) and n["status"] not in (self.cfg.proven | self.cfg.refuted)
 
+    # ---------------- ARGUMENTATION (grounded extension) ----------------
+    def grounded_extension(self):
+        """Dung's grounded labelling over the attack (`refutes`) edges: each node is ``in``
+        (justified), ``out`` (defeated by a justified attacker), or ``undec`` (in an unresolved /
+        even cycle). Recorded-refuted nodes start defeated, so a refuted attacker cannot defeat its
+        target — i.e. *refuting a refuter REINSTATES the original claim*. Pure + deterministic
+        (least fixed point of the characteristic function). Returns ``{id: label}``.
+        """
+        R, att = self.cfg.refuted, self.att
+        label = {i: "out" for i, n in self.N.items() if n["status"] in R}   # pre-defeated
+        changed = True
+        while changed:
+            changed = False
+            for i in self.N:                                  # accept: all attackers defeated
+                if i not in label and all(label.get(a) == "out" for a in att[i]):
+                    label[i] = "in"; changed = True
+            for i in self.N:                                  # defeat: attacked by a justified node
+                if i not in label and any(label.get(a) == "in" for a in att[i]):
+                    label[i] = "out"; changed = True
+        for i in self.N:
+            label.setdefault(i, "undec")                      # left in an even cycle
+        return label
+
     # ---------------- DEDUCTION ----------------
     def deduction(self):
         """Classify every node by propagating proven/refuted along prerequisite edges.
@@ -78,18 +104,24 @@ class ReasonGraph:
         prerequisite is *dead* — refuted OR itself blocked — so a refutation invalidates the whole
         reachable subgraph, not just immediate children. A prerequisite only counts as satisfied
         when PROVEN; an unresolved (ready/awaiting) prerequisite leaves the dependent AWAITING.
+
+        Conflict is resolved by the grounded extension (Dung): an OPEN claim defeated via `refutes`
+        edges is treated as refuted (so it blocks dependents), and is REINSTATED when its attacker
+        is itself defeated. Recorded proven/refuted status always wins over the structural label.
         Pure + deterministic; memoized DFS with a cycle guard (cycles are reported by `validate`).
         """
         P, R = self.cfg.proven, self.cfg.refuted
+        gl = self.grounded_extension()
         proven = {i for i, n in self.N.items() if n["status"] in P}
         refuted = {i for i, n in self.N.items() if n["status"] in R}
+        # structural defeat: an open claim that is `out` in the grounded extension blocks dependents.
+        refuted |= {i for i, l in gl.items() if l == "out" and i not in proven and i not in refuted}
         state, cause, visiting = {}, {}, set()
 
         def classify(i):
-            n = self.N[i]
-            if n["status"] in P:
+            if i in proven:
                 return "proven"
-            if n["status"] in R:
+            if i in refuted:
                 return "refuted"
             if i in state:
                 return state[i]
@@ -134,13 +166,13 @@ class ReasonGraph:
         d = d or self.deduction()
         if i not in d["blocked"]:
             return []
-        R, roots, seen = self.cfg.refuted, set(), set()
+        refuted, roots, seen = d["refuted"], set(), set()   # effective: status- OR structurally-defeated
         def walk(j):
             if j in seen:
                 return
             seen.add(j)
             for p in self.pre[j]:
-                if self.N[p]["status"] in R:
+                if p in refuted:
                     roots.add(p)
                 elif p in d["blocked"]:
                     walk(p)
@@ -453,9 +485,21 @@ class ReasonGraph:
                            awaiting={k: d["awaiting"][k] for k in sorted(d["awaiting"])},
                            blocked={k: d["blocked"][k] for k in sorted(d["blocked"])}),
             decision=ranked,
+            argument=self._argument_summary(),
             induction=[dict(kind=k, node=i, msg=m) for k, i, m in self.induction(d)],
             abduction=self.abduction(d),
         )
+
+    def _argument_summary(self, gl=None):
+        """Reinstated / structurally-defeated / undecided nodes from the grounded extension — only
+        the nodes that participate in a `refutes` attack (so a graph with no attacks reports none)."""
+        gl = gl or self.grounded_extension()
+        R = self.cfg.refuted
+        reinstated = sorted(i for i in self.N if gl[i] == "in" and self.att[i])  # defended, not just unattacked
+        defeated = sorted(i for i in self.N if gl[i] == "out" and self.N[i]["status"] not in R)
+        undecided = sorted(i for i in self.N if gl[i] == "undec" and (self.att[i] or
+                           any(i in self.att[j] for j in self.N)))
+        return dict(reinstated=reinstated, defeated=defeated, undecided=undecided)
 
     def node_view(self, nid):
         """A single node plus its graph context (prereqs/dependents/negatives + classification).
@@ -478,6 +522,7 @@ class ReasonGraph:
             status=n["status"], classification=cls, confidence=n.get("confidence"),
             frontier=self.is_frontier(n), score=score, attrs=n.get("attrs", {}),
             blocked_by=self.blocking_causes(nid, d), opinion=self.opinion(n),
+            grounded=self.grounded_extension().get(nid),
             evidence=n.get("evidence", []), notes=n.get("notes", []),
             prerequisites=[ref(p) for p in self.pre[nid]],
             negatives=[ref(p) for p in self.neg[nid]],
@@ -558,6 +603,10 @@ class ReasonGraph:
         if d["blocked"]:
             L.append("           blocked by refutation: "
                      + "; ".join(f"{k}<-{self.blocking_causes(k, d)}" for k in d["blocked"]))
+        arg = self._argument_summary()
+        if arg["reinstated"] or arg["defeated"] or arg["undecided"]:
+            parts = [f"{k} {', '.join(arg[k])}" for k in ("defeated", "reinstated", "undecided") if arg[k]]
+            L.append("[ARGUMENT] grounded extension — " + "; ".join(parts))
         L += ["", "[DECISION] ranked frontier — what to tackle next:",
               f"  {'score':>6}  {'node':22} {'rdy':>5} {'cen':>4}  title"]
         for sc, i, cen, rb, n in self.decision(d):

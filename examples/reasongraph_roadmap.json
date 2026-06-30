@@ -555,8 +555,8 @@
    "id": "T-GROUNDED-EXTENSION",
    "kind": "target",
    "title": "Compute the grounded extension over the negative sub-graph (Dung reinstatement)",
-   "statement": "A refute-of-a-refuter should reinstate the original claim; the grounded extension is unique, polynomial, skeptical \u2014 ideal for an auditable engine.",
-   "status": "open",
+   "statement": "A refute-of-a-refuter reinstates the original claim; the grounded extension is unique, polynomial, skeptical \u2014 ideal for an auditable engine.",
+   "status": "proven",
    "confidence": 0.5,
    "attrs": {
     "payoff": 0.75,
@@ -567,8 +567,10 @@
     "info_value": 0.65,
     "risk": 0.45
    },
-   "evidence": [],
-   "frontier": true
+   "evidence": [
+    "reasongraph/engine.py: grounded_extension() + deduction coupling; examples/security_audit.py"
+   ],
+   "frontier": false
   },
   {
    "id": "T-BLOCK-EXPLAIN",

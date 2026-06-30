@@ -79,6 +79,54 @@ def test_node_view_reports_root_blocked_by():
     assert v["blocked_by"] == ["P"]              # names the root cause, not the immediate parent C
 
 
+def _attack_chain(with_reinstater):
+    """F1 <-refutes- F2 [<-refutes- F3];  F1 -enables-> T.  Without F3, F2 defeats F1 (T blocked).
+    With F3 defeating F2, F1 is reinstated (T no longer blocked)."""
+    g = new_graph(thesis="argumentation")
+    g["nodes"] += [
+        make_node("F1", "finding", "original claim", "open"),
+        make_node("F2", "finding", "a rebuttal", "open"),
+        make_node("T", "target", "rests on F1", "open", attrs=A(payoff=.8), frontier=True),
+    ]
+    g["edges"] += [make_edge("F2", "F1", "refutes"), make_edge("F1", "T", "enables")]
+    if with_reinstater:
+        g["nodes"].append(make_node("F3", "finding", "rebuts the rebuttal", "open"))
+        g["edges"].append(make_edge("F3", "F2", "refutes"))
+    return g
+
+
+def test_grounded_extension_labels_and_reinstatement():
+    base = ReasonGraph(_attack_chain(False)).grounded_extension()
+    assert base["F2"] == "in" and base["F1"] == "out"          # F2 unattacked defeats F1
+    rein = ReasonGraph(_attack_chain(True)).grounded_extension()
+    assert rein["F3"] == "in" and rein["F2"] == "out" and rein["F1"] == "in"   # F1 reinstated
+
+
+def test_even_cycle_is_undecided():
+    g = new_graph(thesis="even cycle")
+    g["nodes"] += [make_node("A", "finding", "a", "open"), make_node("B", "finding", "b", "open")]
+    g["edges"] += [make_edge("A", "B", "refutes"), make_edge("B", "A", "refutes")]
+    gl = ReasonGraph(g).grounded_extension()
+    assert gl["A"] == "undec" and gl["B"] == "undec"           # mutual attack, neither justified
+
+
+def test_refutes_attack_blocks_dependent_and_reinstatement_unblocks():
+    d0 = ReasonGraph(_attack_chain(False)).deduction()
+    assert "F1" in d0["refuted"] and "T" in d0["blocked"]      # structural defeat blocks T
+    d1 = ReasonGraph(_attack_chain(True)).deduction()
+    assert "F1" not in d1["refuted"] and "T" not in d1["blocked"]   # reinstated -> T recovers
+    assert "T" in d1["awaiting"]                               # now just awaiting F1 being proven
+
+
+def test_recorded_proven_status_wins_over_structural_attack():
+    g = _attack_chain(False)
+    for n in g["nodes"]:
+        if n["id"] == "F1":
+            n["status"] = "proven"                             # recorded evidence beats the attack
+    d = ReasonGraph(g).deduction()
+    assert "F1" in d["proven"] and "F1" not in d["refuted"]
+
+
 def test_decision_is_deterministic_and_orders_ready_first():
     rg = ReasonGraph(_graph())
     r1 = rg.decision(rg.deduction())

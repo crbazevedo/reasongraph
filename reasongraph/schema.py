@@ -47,6 +47,7 @@ class GraphConfig:
     thin: frozenset = THIN
     prereq_rel: frozenset = PREREQ_REL
     neg_rel: frozenset = NEG_REL
+    attack_rel: frozenset = frozenset({"refutes"})   # directed defeat for the grounded extension
     semantic_rel: frozenset = SEMANTIC_REL
     kinds: frozenset = frozenset(KINDS)            # validate: flag node kinds outside this set
     statuses: frozenset = frozenset(STATUSES)      # validate: flag statuses outside this ladder

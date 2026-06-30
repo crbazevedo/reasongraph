@@ -9,6 +9,14 @@ its own upgrade path (`reasongraph migrate`). See [docs/UPGRADING.md](docs/UPGRA
 ## [Unreleased]
 
 ### Added
+- **Grounded extension (Dung argumentation) with reinstatement** — `ReasonGraph.grounded_extension()`
+  labels each node `in` / `out` / `undec` over the `refutes` attack edges (new
+  `GraphConfig.attack_rel`). *Refuting a refuter reinstates the original claim.* Deduction consumes
+  it: an OPEN claim structurally defeated via `refutes` blocks its dependents and is reinstated when
+  its attacker is itself defeated — while recorded proven/refuted status always wins. Surfaced in the
+  pass report (`[ARGUMENT]`), `show` / `node_view` (`grounded`), and `pass --json` (`argument`).
+  Pure and deterministic. Backward compatible: graphs without `refutes` edges are unaffected.
+  `examples/security_audit.py` now demonstrates it (a disputed finding reinstated by a production repro).
 - **Subjective-logic confidence** — `ReasonGraph.opinion(node)` derives an opinion
   (belief / disbelief / uncertainty / projected confidence) from a node's `evidence[]` in closed
   form: `confidence = (r + a·W)/(r+s+W)`. With no evidence, confidence equals the base rate and
